@@ -12,7 +12,14 @@ struct OnboardingRoutinesView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    Spacer().frame(height: 20)
+                    // Onboarding-3 header illustration
+                    Image("Onboarding-3")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 120)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal, 60)
+                        .padding(.top, 8)
 
                     VStack(spacing: 8) {
                         Text("Build Your Routine")

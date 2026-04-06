@@ -23,10 +23,18 @@ struct OnboardingLoadingView: View {
 
             Spacer()
 
-            VStack(spacing: 32) {
+            VStack(spacing: 24) {
+                // Onboarding-4 header illustration
+                Image("Onboarding-4")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 160)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 40)
+
                 if showCheckmark {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 70))
+                        .font(.system(size: 60))
                         .foregroundStyle(Color.pmSuccess)
                         .transition(.scale.combined(with: .opacity))
                 } else {
@@ -64,7 +72,6 @@ struct OnboardingLoadingView: View {
     }
 
     private func runLoading() async {
-        // Staggered progress animations
         withAnimation(.easeOut(duration: 1.0)) { progress1 = 1.0 }
         try? await Task.sleep(for: .seconds(0.8))
 

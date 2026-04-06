@@ -10,13 +10,16 @@ struct OnboardingPhotoView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    Spacer().frame(height: 30)
+                    // Onboarding-3 header illustration
+                    Image("Onboarding-3")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 40)
+                        .padding(.top, 10)
 
                     VStack(spacing: 12) {
-                        Image(systemName: "camera.viewfinder")
-                            .font(.system(size: 50))
-                            .foregroundStyle(Color.pmPrimary)
-
                         Text("Capture Your Starting Point")
                             .font(.title2.weight(.bold))
 

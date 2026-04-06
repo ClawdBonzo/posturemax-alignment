@@ -42,9 +42,12 @@ struct PostureWidgetSmallView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            HStack {
-                Image(systemName: "figure.stand")
-                    .foregroundStyle(.teal)
+            HStack(spacing: 4) {
+                Image("BrandIcon")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 16, height: 16)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
                 Text("PostureMax")
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(.secondary)
@@ -119,9 +122,12 @@ struct PostureWidgetMediumView: View {
 
             // Right: Stats
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "figure.stand")
-                        .foregroundStyle(.teal)
+                HStack(spacing: 6) {
+                    Image("BrandIcon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 22, height: 22)
+                        .clipShape(RoundedRectangle(cornerRadius: 5))
                     Text("PostureMax")
                         .font(.subheadline.weight(.semibold))
                 }

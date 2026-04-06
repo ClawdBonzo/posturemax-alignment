@@ -34,6 +34,15 @@ struct OnboardingQuizView: View {
         VStack(spacing: 0) {
             OnboardingProgressBar(step: 2, total: 6)
 
+            // Onboarding-2 header illustration
+            Image("Onboarding-2")
+                .resizable()
+                .scaledToFit()
+                .frame(maxHeight: 120)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 60)
+                .padding(.top, 8)
+
             TabView(selection: $quizStep) {
                 // Pain Areas
                 quizPage(

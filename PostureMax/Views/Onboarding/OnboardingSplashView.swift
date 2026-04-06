@@ -10,22 +10,35 @@ struct OnboardingSplashView: View {
 
             VStack(spacing: 24) {
                 ZStack {
+                    // Teal glow rings
                     Circle()
                         .fill(Color.pmPrimary.opacity(0.15))
-                        .frame(width: 160, height: 160)
+                        .frame(width: 180, height: 180)
                         .scaleEffect(animate ? 1.1 : 1.0)
 
                     Circle()
                         .fill(Color.pmPrimary.opacity(0.08))
-                        .frame(width: 220, height: 220)
+                        .frame(width: 240, height: 240)
                         .scaleEffect(animate ? 1.15 : 1.0)
 
-                    Image(systemName: "figure.stand")
-                        .font(.system(size: 70, weight: .light))
-                        .foregroundStyle(Color.pmPrimary)
+                    // Brand icon instead of SF Symbol
+                    Image("BrandIcon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 110, height: 110)
+                        .clipShape(RoundedRectangle(cornerRadius: 26))
+                        .shadow(color: Color.pmPrimary.opacity(0.35), radius: 16)
                         .scaleEffect(animate ? 1.05 : 0.95)
                 }
                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animate)
+
+                // Onboarding-1 illustration
+                Image("Onboarding-1")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 200)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .padding(.horizontal, 40)
 
                 VStack(spacing: 12) {
                     Text("PostureMax")

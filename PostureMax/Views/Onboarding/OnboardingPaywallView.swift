@@ -25,25 +25,22 @@ struct OnboardingPaywallView: View {
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
 
-                // Hero transformation teaser
+                // Brand icon + Paywall illustration hero
                 VStack(spacing: 16) {
-                    HStack(spacing: 16) {
-                        TransformationCard(
-                            title: "Before",
-                            icon: "figure.stand",
-                            color: .pmDanger,
-                            rotation: -5
-                        )
-                        Image(systemName: "arrow.right")
-                            .font(.title2.weight(.bold))
-                            .foregroundStyle(Color.pmPrimary)
-                        TransformationCard(
-                            title: "After 30 Days",
-                            icon: "figure.stand",
-                            color: .pmSuccess,
-                            rotation: 0
-                        )
-                    }
+                    Image("BrandIcon")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 72, height: 72)
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .shadow(color: Color.pmPrimary.opacity(0.3), radius: 12)
+
+                    // Onboarding-5 paywall illustration
+                    Image("Onboarding-5")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 32)
 
                     Text("Unlock Your\nPosture Transformation")
                         .font(.title.weight(.bold))
@@ -126,28 +123,6 @@ struct OnboardingPaywallView: View {
                 .padding(.bottom, 20)
             }
         }
-    }
-}
-
-struct TransformationCard: View {
-    let title: String
-    let icon: String
-    let color: Color
-    let rotation: Double
-
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 40))
-                .foregroundStyle(color)
-                .rotationEffect(.degrees(rotation))
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(color)
-        }
-        .frame(width: 120, height: 110)
-        .background(color.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 

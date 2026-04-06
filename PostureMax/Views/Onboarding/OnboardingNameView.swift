@@ -11,14 +11,17 @@ struct OnboardingNameView: View {
             OnboardingProgressBar(step: 1, total: 6)
 
             ScrollView {
-                VStack(spacing: 32) {
-                    Spacer().frame(height: 40)
+                VStack(spacing: 24) {
+                    // Onboarding-1 header illustration
+                    Image("Onboarding-1")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .padding(.horizontal, 40)
+                        .padding(.top, 20)
 
                     VStack(spacing: 12) {
-                        Image(systemName: "person.crop.circle.badge.plus")
-                            .font(.system(size: 56))
-                            .foregroundStyle(Color.pmPrimary)
-
                         Text("What should we call\nyour pain-free self?")
                             .font(.title2.weight(.bold))
                             .multilineTextAlignment(.center)

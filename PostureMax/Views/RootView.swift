@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct RootView: View {
     @Environment(AppCoordinator.self) private var coordinator
@@ -19,23 +20,23 @@ struct MainTabView: View {
         @Bindable var coordinator = coordinator
 
         TabView(selection: $coordinator.selectedTab) {
-            Tab("Dashboard", systemImage: "gauge.with.dots.needle.33percent", value: .dashboard) {
+            Tab("Dashboard", image: "Tab-Dashboard", value: .dashboard) {
                 DashboardView()
             }
 
-            Tab("Log", systemImage: "square.and.pencil", value: .logger) {
+            Tab("Log", image: "Tab-DailyLogger", value: .logger) {
                 DailyLoggerStandaloneView()
             }
 
-            Tab("Photos", systemImage: "photo.stack", value: .photos) {
+            Tab("Photos", image: "Tab-StreakCalendar", value: .photos) {
                 PhotoJournalView()
             }
 
-            Tab("Progress", systemImage: "chart.line.uptrend.xyaxis", value: .progress) {
+            Tab("Progress", image: "Tab-ProgressCharts", value: .progress) {
                 ProgressChartsView()
             }
 
-            Tab("Routines", systemImage: "figure.flexibility", value: .routines) {
+            Tab("Settings", image: "Tab-Settings", value: .routines) {
                 RoutineLibraryView()
             }
         }

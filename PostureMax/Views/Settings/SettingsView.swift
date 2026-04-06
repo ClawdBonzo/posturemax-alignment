@@ -23,9 +23,11 @@ struct SettingsView: View {
                 Section("Profile") {
                     if let profile {
                         HStack {
-                            Image(systemName: "person.circle.fill")
-                                .font(.system(size: 44))
-                                .foregroundStyle(Color.pmPrimary)
+                            Image("BrandIcon")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 44, height: 44)
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(profile.displayName)
