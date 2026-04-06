@@ -1,26 +1,86 @@
 import SwiftUI
+import RevenueCat
 
 struct OnboardingPaywallView: View {
     let onContinue: () -> Void
-    @State private var selectedPlan = 1 // 0=weekly, 1=annual, 2=monthly
 
-    private let plans: [(title: String, price: String, period: String, badge: String?, perWeek: String)] = [
-        ("Weekly", "$4.99", "/week", nil, "$4.99"),
-        ("Annual", "$39.99", "/year", "BEST VALUE", "$0.77"),
-        ("Monthly", "$9.99", "/month", nil, "$2.50")
-    ]
+    @State private var purchaseManager = PurchaseManager.shared
+    @State private var selectedPlanIndex = 1 // default to monthly (BEST VALUE)
+    @State private var isPurchasing = false
+    @State private var showError = false
+    @State private var errorText = ""
+    @State private var showRestoreSuccess = false
+
+    // Fallback static plans used when RevenueCat offerings haven't loaded
+    private struct PlanInfo: Identifiable {
+        let id: Int
+        let title: String
+        let price: String
+        let period: String
+        let badge: String?
+        let perWeek: String
+        let trialText: String?
+        var package: Package?
+    }
+
+    private var plans: [PlanInfo] {
+        let offering = purchaseManager.currentOffering
+        return [
+            PlanInfo(
+                id: 0,
+                title: "Weekly",
+                price: offering?.package(identifier: "$rc_weekly")?.storeProduct.localizedPriceString ?? "$4.99",
+                period: "/week",
+                badge: nil,
+                perWeek: offering?.package(identifier: "$rc_weekly")?.storeProduct.localizedPriceString ?? "$4.99",
+                trialText: nil,
+                package: offering?.package(identifier: "$rc_weekly")
+            ),
+            PlanInfo(
+                id: 1,
+                title: "Monthly",
+                price: offering?.package(identifier: "$rc_monthly")?.storeProduct.localizedPriceString ?? "$9.99",
+                period: "/month",
+                badge: "BEST VALUE",
+                perWeek: "$2.50",
+                trialText: "3-day free trial",
+                package: offering?.package(identifier: "$rc_monthly")
+            ),
+            PlanInfo(
+                id: 2,
+                title: "Yearly",
+                price: offering?.package(identifier: "$rc_annual")?.storeProduct.localizedPriceString ?? "$49.99",
+                period: "/year",
+                badge: "SAVE 58%",
+                perWeek: "$0.96",
+                trialText: nil,
+                package: offering?.package(identifier: "$rc_annual")
+            ),
+            PlanInfo(
+                id: 3,
+                title: "Lifetime",
+                price: offering?.package(identifier: "$rc_lifetime")?.storeProduct.localizedPriceString ?? "$79.99",
+                period: " once",
+                badge: nil,
+                perWeek: "forever",
+                trialText: nil,
+                package: offering?.package(identifier: "$rc_lifetime")
+            )
+        ]
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Close / Skip
+                // Restore
                 HStack {
                     Spacer()
-                    Button("Restore") {
-                        // RevenueCat restore
+                    Button("Restore Purchases") {
+                        Task { await restorePurchases() }
                     }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .disabled(isPurchasing)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 8)
@@ -34,7 +94,6 @@ struct OnboardingPaywallView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 18))
                         .shadow(color: Color.pmPrimary.opacity(0.3), radius: 12)
 
-                    // Onboarding-5 paywall illustration
                     Image("Onboarding-5")
                         .resizable()
                         .scaledToFit()
@@ -65,42 +124,53 @@ struct OnboardingPaywallView: View {
 
                 // Plans
                 VStack(spacing: 10) {
-                    ForEach(0..<plans.count, id: \.self) { index in
+                    ForEach(plans) { plan in
                         PlanCard(
-                            title: plans[index].title,
-                            price: plans[index].price,
-                            period: plans[index].period,
-                            badge: plans[index].badge,
-                            perWeek: plans[index].perWeek,
-                            isSelected: selectedPlan == index
+                            title: plan.title,
+                            price: plan.price,
+                            period: plan.period,
+                            badge: plan.badge,
+                            perWeek: plan.perWeek,
+                            isSelected: selectedPlanIndex == plan.id
                         ) {
                             withAnimation(.spring(response: 0.3)) {
-                                selectedPlan = index
+                                selectedPlanIndex = plan.id
                             }
                         }
                     }
                 }
                 .padding(.horizontal, 24)
 
-                // Trial info
-                VStack(spacing: 4) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "gift.fill")
-                            .foregroundStyle(Color.pmPrimary)
-                        Text("3-DAY FREE TRIAL")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(Color.pmPrimary)
+                // Trial callout (for monthly plan)
+                if selectedPlanIndex == 1 {
+                    VStack(spacing: 4) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gift.fill")
+                                .foregroundStyle(Color.pmPrimary)
+                            Text("3-DAY FREE TRIAL")
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(Color.pmPrimary)
+                        }
+                        Text("Cancel anytime. No charge during trial.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                    Text("Cancel anytime. No charge during trial.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
 
                 // CTA
                 VStack(spacing: 12) {
-                    PMButton(title: "Start Free Trial", icon: "lock.open.fill") {
-                        // RevenueCat purchase will go here
-                        onContinue()
+                    PMButton(
+                        title: isPurchasing ? "Processing..." : (selectedPlanIndex == 1 ? "Start Free Trial" : "Subscribe Now"),
+                        icon: isPurchasing ? nil : "lock.open.fill"
+                    ) {
+                        Task { await purchaseSelected() }
+                    }
+                    .disabled(isPurchasing)
+                    .opacity(isPurchasing ? 0.7 : 1)
+
+                    if isPurchasing {
+                        ProgressView()
+                            .tint(Color.pmPrimary)
                     }
 
                     Button("Continue with limited access") {
@@ -123,8 +193,58 @@ struct OnboardingPaywallView: View {
                 .padding(.bottom, 20)
             }
         }
+        .task {
+            await purchaseManager.loadOfferings()
+        }
+        .alert("Purchase Error", isPresented: $showError) {
+            Button("OK") {}
+        } message: {
+            Text(errorText)
+        }
+        .alert("Purchases Restored", isPresented: $showRestoreSuccess) {
+            Button("Continue") { onContinue() }
+        } message: {
+            Text("Your Pro subscription has been restored successfully.")
+        }
+    }
+
+    // MARK: - Purchase
+    private func purchaseSelected() async {
+        let plan = plans[selectedPlanIndex]
+        guard let package = plan.package else {
+            errorText = "This plan is not available right now. Please try again later."
+            showError = true
+            return
+        }
+
+        isPurchasing = true
+        let success = await purchaseManager.purchase(package)
+        isPurchasing = false
+
+        if success {
+            onContinue()
+        } else if let error = purchaseManager.errorMessage {
+            errorText = error
+            showError = true
+        }
+    }
+
+    // MARK: - Restore
+    private func restorePurchases() async {
+        isPurchasing = true
+        let success = await purchaseManager.restore()
+        isPurchasing = false
+
+        if success {
+            showRestoreSuccess = true
+        } else if let error = purchaseManager.errorMessage {
+            errorText = error
+            showError = true
+        }
     }
 }
+
+// MARK: - Supporting Views
 
 struct PaywallFeatureRow: View {
     let icon: String
@@ -178,9 +298,11 @@ struct PlanCard: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(perWeek)
                         .font(.headline)
-                    Text("/week")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    if perWeek != "forever" {
+                        Text("/week")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")

@@ -11,8 +11,10 @@ struct SettingsView: View {
 
     @State private var showExportSheet = false
     @State private var showResetAlert = false
+    @State private var showPaywall = false
     @State private var exportedPDFData: Data?
 
+    private var purchaseManager = PurchaseManager.shared
     private var profile: UserProfile? { profiles.first }
     private var streak: StreakRecord { streaks.first ?? StreakRecord() }
 
@@ -38,11 +40,30 @@ struct SettingsView: View {
                             }
                         }
 
-                        HStack {
-                            Text("Subscription")
-                            Spacer()
-                            Text(profile.isPremium ? "Premium" : "Free")
-                                .foregroundStyle(.secondary)
+                        if purchaseManager.isPro {
+                            HStack {
+                                Text("Subscription")
+                                Spacer()
+                                Text("Pro")
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Color.pmPrimary)
+                            }
+                        } else {
+                            Button {
+                                showPaywall = true
+                            } label: {
+                                HStack {
+                                    Text("Upgrade to Pro")
+                                    Spacer()
+                                    Text("Free Trial")
+                                        .font(.caption.weight(.semibold))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.pmPrimary)
+                                        .foregroundStyle(.white)
+                                        .clipShape(Capsule())
+                                }
+                            }
                         }
                     }
                 }
@@ -116,6 +137,11 @@ struct SettingsView: View {
             .sheet(isPresented: $showExportSheet) {
                 if let data = exportedPDFData {
                     ShareSheet(items: [data])
+                }
+            }
+            .sheet(isPresented: $showPaywall) {
+                OnboardingPaywallView {
+                    showPaywall = false
                 }
             }
         }

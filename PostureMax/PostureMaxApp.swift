@@ -26,6 +26,10 @@ struct PostureMaxApp: App {
         }
     }()
 
+    init() {
+        PurchaseManager.shared.configure()
+    }
+
     var body: some Scene {
         WindowGroup {
             ZStack {
@@ -42,6 +46,9 @@ struct PostureMaxApp: App {
                     }
                     .transition(.opacity)
                 }
+            }
+            .task {
+                await PurchaseManager.shared.checkProStatus()
             }
         }
     }
