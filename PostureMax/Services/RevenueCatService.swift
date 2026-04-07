@@ -31,6 +31,7 @@ final class PurchaseManager {
     // MARK: - Configure on app launch
     func configure() {
         Purchases.logLevel = .debug
+        // TODO: Replace with LIVE key (starts with "live_") before submitting to App Store
         Purchases.configure(withAPIKey: RCConstants.apiKey)
     }
 
