@@ -5,7 +5,7 @@ import SwiftUI
 // MARK: - RevenueCat Configuration
 enum RCConstants {
     // TODO: Replace with your actual RevenueCat public API key from app.revenuecat.com
-    static let apiKey = "appl_REPLACE_WITH_YOUR_REVENUECAT_KEY"
+    static let apiKey = "test_JYgyHftpBlZsQleHsnqldwQRscJ"
     static let entitlementID = "pro"
 
     // Product identifiers (must match App Store Connect)
