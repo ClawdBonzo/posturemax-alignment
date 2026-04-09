@@ -15,7 +15,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		FA300000000000000000002 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		FA300000000000000000002 /* Exceptions for "PostureMax" folder in "PostureMax" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -28,7 +28,7 @@
 		FA300000000000000000001 /* PostureMax */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				FA300000000000000000002 /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+				FA300000000000000000002 /* Exceptions for "PostureMax" folder in "PostureMax" target */,
 			);
 			path = PostureMax;
 			sourceTree = "<group>";
@@ -125,16 +125,6 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXSourcesBuildPhase section */
-		FA600000000000000000001 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXSourcesBuildPhase section */
-
 /* Begin PBXResourcesBuildPhase section */
 		FA600000000000000000002 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
@@ -144,6 +134,16 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FA600000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
 		FA000000000000000000004 /* Debug */ = {
@@ -205,7 +205,7 @@
 				INFOPLIST_FILE = PostureMax/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.robgoldstein.PostureMax";
+				PRODUCT_BUNDLE_IDENTIFIER = com.robgoldstein.PostureMax;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -226,7 +226,7 @@
 				INFOPLIST_FILE = PostureMax/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.robgoldstein.PostureMax";
+				PRODUCT_BUNDLE_IDENTIFIER = com.robgoldstein.PostureMax;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -277,7 +277,6 @@
 			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
-
 	};
 	rootObject = FA000000000000000000003 /* Project object */;
 }
