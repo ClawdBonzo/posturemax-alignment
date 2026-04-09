@@ -5,41 +5,31 @@ struct QuestsView: View {
     @Query var allQuests: [Quest]
     @State private var selectedTab: QuestTab = .daily
 
-    enum QuestTab {
-        case daily
-        case weekly
-    }
+    enum QuestTab { case daily, weekly }
 
-    var dailyQuests: [Quest] {
-        allQuests.filter { !$0.isWeekly }.sorted { !$0.isCompleted && $1.isCompleted }
-    }
-
-    var weeklyQuests: [Quest] {
-        allQuests.filter { $0.isWeekly }.sorted { !$0.isCompleted && $1.isCompleted }
-    }
-
-    var activeQuests: [Quest] {
-        selectedTab == .daily ? dailyQuests : weeklyQuests
-    }
-
-    var completedCount: Int {
-        activeQuests.filter { $0.isCompleted }.count
-    }
+    var dailyQuests:  [Quest] { allQuests.filter { !$0.isWeekly }.sorted { !$0.isCompleted && $1.isCompleted } }
+    var weeklyQuests: [Quest] { allQuests.filter {  $0.isWeekly }.sorted { !$0.isCompleted && $1.isCompleted } }
+    var activeQuests: [Quest] { selectedTab == .daily ? dailyQuests : weeklyQuests }
+    var completedCount: Int   { activeQuests.filter { $0.isCompleted }.count }
 
     var body: some View {
         ZStack {
             Color.pmBackground.ignoresSafeArea()
 
+            // Ambient particles — decorative, hidden from accessibility
+            AmbientParticleBackground(particleCount: 10)
+
             VStack(spacing: 20) {
-                // Tab Selection
+                // Tab picker
                 Picker("Quest Type", selection: $selectedTab) {
                     Text("Daily").tag(QuestTab.daily)
                     Text("Weekly").tag(QuestTab.weekly)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
+                .accessibilityLabel("Quest category")
 
-                // Progress Summary
+                // Progress summary
                 VStack(spacing: 8) {
                     HStack {
                         Text(selectedTab == .daily ? "Today's Progress" : "This Week's Progress")
@@ -48,35 +38,49 @@ struct QuestsView: View {
                         Spacer()
                         Text("\(completedCount)/\(activeQuests.count)")
                             .font(.caption.weight(.semibold))
-                            .foregroundColor(.pmAccent)
+                            .foregroundStyle(Color.pmGold)
+                            .goldGlow(radius: 3)
+                            .accessibilityLabel("\(completedCount) of \(activeQuests.count) quests completed")
                     }
 
-                    GeometryReader { geometry in
+                    GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color.pmPrimary.opacity(0.1))
 
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.pmSuccess)
-                                .frame(width: geometry.size.width * (activeQuests.isEmpty ? 0 : Double(completedCount) / Double(activeQuests.count)))
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.pmPrimary, .pmGold],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: geo.size.width * progressRatio)
+                                .neonGlow(radius: 4)
                         }
                     }
                     .frame(height: 12)
+                    .accessibilityLabel("Quest progress")
+                    .accessibilityValue("\(completedCount) of \(activeQuests.count) completed")
                 }
                 .padding(.horizontal)
 
-                // Quests List
+                // Quest list
                 if activeQuests.isEmpty {
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.title)
-                            .foregroundColor(.pmSuccess)
+                            .foregroundStyle(Color.pmSuccess)
+                            .neonGlow(color: .pmSuccess, radius: 8)
+                            .accessibilityHidden(true)
                         Text("No Quests Available")
                             .font(.headline)
-                            .foregroundColor(.pmSecondaryText)
+                            .foregroundStyle(Color.pmSecondaryText)
                         Text("Check back soon for new \(selectedTab == .daily ? "daily" : "weekly") quests!")
                             .font(.caption)
-                            .foregroundColor(.pmSecondaryText)
+                            .foregroundStyle(Color.pmSecondaryText)
+                            .multilineTextAlignment(.center)
                     }
                     .frame(maxHeight: .infinity)
                     .padding()
@@ -95,6 +99,11 @@ struct QuestsView: View {
         }
         .navigationTitle("Quests")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private var progressRatio: CGFloat {
+        guard !activeQuests.isEmpty else { return 0 }
+        return CGFloat(completedCount) / CGFloat(activeQuests.count)
     }
 }
 

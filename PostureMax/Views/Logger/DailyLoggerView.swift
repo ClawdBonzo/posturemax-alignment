@@ -5,21 +5,21 @@ struct DailyLoggerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var profiles: [UserProfile]
-    @Query private var streaks: [StreakRecord]
+    @Query private var streaks:  [StreakRecord]
 
-    @State private var postureRating: Int = 5
-    @State private var painLevel: Int = 3
-    @State private var neckAlignment: Int = 5
-    @State private var shoulderBalance: Int = 5
-    @State private var spineAlignment: Int = 5
-    @State private var hipAlignment: Int = 5
-    @State private var overallMobility: Int = 5
-    @State private var notes: String = ""
-    @State private var selectedImage: UIImage? = nil
+    @State private var postureRating:    Int = 5
+    @State private var painLevel:        Int = 3
+    @State private var neckAlignment:    Int = 5
+    @State private var shoulderBalance:  Int = 5
+    @State private var spineAlignment:   Int = 5
+    @State private var hipAlignment:     Int = 5
+    @State private var overallMobility:  Int = 5
+    @State private var notes:            String = ""
+    @State private var selectedImage:    UIImage? = nil
     @State private var completedChecklist: Set<String> = []
 
     private var profile: UserProfile? { profiles.first }
-    private var streak: StreakRecord { streaks.first ?? StreakRecord() }
+    private var streak:  StreakRecord { streaks.first ?? StreakRecord() }
 
     private let checklistItems = [
         "Took stretch breaks every 30 min",
@@ -36,30 +36,28 @@ struct DailyLoggerView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Posture Rating
-                    ratingSection(title: "Overall Posture", value: $postureRating, icon: "figure.stand")
 
-                    // Pain Level
-                    ratingSection(title: "Pain Level", value: $painLevel, icon: "bolt.fill", inverted: true)
+                    ratingSection(title: "Overall Posture", value: $postureRating, icon: "figure.stand")
+                    ratingSection(title: "Pain Level",      value: $painLevel,     icon: "bolt.fill", inverted: true)
 
                     Divider().padding(.horizontal)
 
-                    // Trait Ratings
+                    // Alignment details
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Alignment Details")
                             .font(.headline)
                             .padding(.horizontal)
 
-                        traitSlider("Neck Alignment", value: $neckAlignment, icon: "figure.wave")
-                        traitSlider("Shoulder Balance", value: $shoulderBalance, icon: "figure.arms.open")
-                        traitSlider("Spine Alignment", value: $spineAlignment, icon: "figure.stand")
-                        traitSlider("Hip Alignment", value: $hipAlignment, icon: "figure.run")
-                        traitSlider("Overall Mobility", value: $overallMobility, icon: "figure.flexibility")
+                        traitSlider("Neck Alignment",    value: $neckAlignment,   icon: "figure.wave")
+                        traitSlider("Shoulder Balance",  value: $shoulderBalance, icon: "figure.arms.open")
+                        traitSlider("Spine Alignment",   value: $spineAlignment,  icon: "figure.stand")
+                        traitSlider("Hip Alignment",     value: $hipAlignment,    icon: "figure.run")
+                        traitSlider("Overall Mobility",  value: $overallMobility, icon: "figure.flexibility")
                     }
 
                     Divider().padding(.horizontal)
 
-                    // Checklist
+                    // Daily checklist
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Daily Checklist")
                             .font(.headline)
@@ -74,8 +72,11 @@ struct DailyLoggerView: View {
                                 }
                             } label: {
                                 HStack(spacing: 12) {
-                                    Image(systemName: completedChecklist.contains(item) ? "checkmark.circle.fill" : "circle")
-                                        .foregroundStyle(completedChecklist.contains(item) ? Color.pmSuccess : .secondary)
+                                    Image(systemName: completedChecklist.contains(item)
+                                          ? "checkmark.circle.fill" : "circle")
+                                        .foregroundStyle(completedChecklist.contains(item)
+                                            ? Color.pmSuccess : .secondary)
+                                        .accessibilityHidden(true)
                                     Text(item)
                                         .font(.subheadline)
                                         .foregroundStyle(.primary)
@@ -84,12 +85,15 @@ struct DailyLoggerView: View {
                                 .padding(.horizontal)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(item)
+                            .accessibilityValue(completedChecklist.contains(item) ? "checked" : "unchecked")
+                            .accessibilityAddTraits(.isButton)
                         }
                     }
 
                     Divider().padding(.horizontal)
 
-                    // Photo
+                    // Progress photo
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Progress Photo")
                             .font(.headline)
@@ -114,9 +118,10 @@ struct DailyLoggerView: View {
                             .background(Color.pmCardBackground)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.horizontal)
+                            .accessibilityLabel("Session notes")
                     }
 
-                    // Save Button
+                    // Save
                     PMButton(title: "Save Log", icon: "checkmark.circle.fill") {
                         saveLog()
                     }
@@ -135,28 +140,45 @@ struct DailyLoggerView: View {
         }
     }
 
-    private func ratingSection(title: String, value: Binding<Int>, icon: String, inverted: Bool = false) -> some View {
+    // MARK: - Rating section (big slider)
+
+    private func ratingSection(
+        title: String,
+        value: Binding<Int>,
+        icon: String,
+        inverted: Bool = false
+    ) -> some View {
         VStack(spacing: 12) {
             HStack {
                 Image(systemName: icon)
                     .foregroundStyle(Color.pmPrimary)
+                    .accessibilityHidden(true)
                 Text(title)
                     .font(.headline)
                 Spacer()
                 Text("\(value.wrappedValue)/10")
                     .font(.title3.weight(.bold).monospacedDigit())
                     .foregroundStyle(ratingColor(value.wrappedValue, inverted: inverted))
+                    .accessibilityHidden(true)  // slider announces the value itself
             }
             .padding(.horizontal)
 
-            Slider(value: Binding(
-                get: { Double(value.wrappedValue) },
-                set: { value.wrappedValue = Int($0) }
-            ), in: 0...10, step: 1)
+            Slider(
+                value: Binding(
+                    get: { Double(value.wrappedValue) },
+                    set: { value.wrappedValue = Int($0) }
+                ),
+                in: 0...10,
+                step: 1
+            )
             .tint(ratingColor(value.wrappedValue, inverted: inverted))
             .padding(.horizontal)
+            .accessibilityLabel(title)
+            .accessibilityValue("\(value.wrappedValue) out of 10")
         }
     }
+
+    // MARK: - Trait slider (compact)
 
     private func traitSlider(_ title: String, value: Binding<Int>, icon: String) -> some View {
         HStack(spacing: 12) {
@@ -164,77 +186,85 @@ struct DailyLoggerView: View {
                 .font(.caption)
                 .foregroundStyle(Color.pmPrimary)
                 .frame(width: 20)
+                .accessibilityHidden(true)
 
             Text(title)
                 .font(.subheadline)
                 .frame(width: 110, alignment: .leading)
 
-            Slider(value: Binding(
-                get: { Double(value.wrappedValue) },
-                set: { value.wrappedValue = Int($0) }
-            ), in: 0...10, step: 1)
+            Slider(
+                value: Binding(
+                    get: { Double(value.wrappedValue) },
+                    set: { value.wrappedValue = Int($0) }
+                ),
+                in: 0...10,
+                step: 1
+            )
             .tint(Color.pmPrimary)
+            .accessibilityLabel(title)
+            .accessibilityValue("\(value.wrappedValue) out of 10")
 
             Text("\(value.wrappedValue)")
                 .font(.subheadline.weight(.bold).monospacedDigit())
                 .frame(width: 24)
+                .accessibilityHidden(true)
         }
         .padding(.horizontal)
     }
 
+    // MARK: - Helpers
+
     private func ratingColor(_ value: Int, inverted: Bool = false) -> Color {
         let effective = inverted ? 10 - value : value
         switch effective {
-        case 0...3: return .pmDanger
-        case 4...5: return .pmWarning
-        case 6...7: return .pmAccent
-        default: return .pmSuccess
+        case 0...3:  return .pmDanger
+        case 4...5:  return .pmWarning
+        case 6...7:  return .pmAccent
+        default:     return .pmSuccess
         }
     }
 
     private func saveLog() {
         var photoId: UUID? = nil
-        if let image = selectedImage {
-            if let photo = PhotoStorageService.savePhoto(image: image, category: "progress", context: modelContext) {
-                photoId = photo.id
-            }
+        if let image = selectedImage,
+           let photo = PhotoStorageService.savePhoto(image: image, category: "progress", context: modelContext) {
+            photoId = photo.id
         }
 
         let log = DailyLog(
-            postureRating: postureRating,
-            painLevel: painLevel,
-            notes: notes,
+            postureRating:   postureRating,
+            painLevel:       painLevel,
+            notes:           notes,
             completedChecklist: Array(completedChecklist),
-            photoId: photoId,
-            neckAlignment: neckAlignment,
+            photoId:         photoId,
+            neckAlignment:   neckAlignment,
             shoulderBalance: shoulderBalance,
-            spineAlignment: spineAlignment,
-            hipAlignment: hipAlignment,
+            spineAlignment:  spineAlignment,
+            hipAlignment:    hipAlignment,
             overallMobility: overallMobility
         )
 
         modelContext.insert(log)
         StreakService.updateStreak(context: modelContext)
 
-        // Check for streak milestones and trigger haptics
         let updatedStreak = StreakService.getCurrentStreak(context: modelContext)
-        let streakMilestones = [7, 14, 30, 60, 90, 365]
-        if streakMilestones.contains(updatedStreak.currentStreak) {
+        if [7, 14, 30, 60, 90, 365].contains(updatedStreak.currentStreak) {
             HapticService.shared.playStreakMilestoneHaptic()
         }
 
-        // Award XP for log
         if let userProfile = profile {
             GamificationService.shared.awardXPForLog(
-                context: modelContext,
+                context:       modelContext,
                 userProfileId: userProfile.id,
-                posture: postureRating,
-                pain: painLevel,
-                streak: updatedStreak.currentStreak
+                posture:       postureRating,
+                pain:          painLevel,
+                streak:        updatedStreak.currentStreak
             )
-
-            QuestService.shared.updateQuestProgress(context: modelContext, questType: .logTimes, increment: 1)
-
+            QuestService.shared.updateQuestProgress(
+                context:   modelContext,
+                questType: .logTimes,
+                increment: 1
+            )
             HapticService.shared.playLogHaptic()
         }
 

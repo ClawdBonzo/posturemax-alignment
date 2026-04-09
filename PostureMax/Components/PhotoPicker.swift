@@ -15,16 +15,18 @@ struct PhotoPickerView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 300)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .accessibilityLabel("Selected progress photo")
                     .overlay(alignment: .topTrailing) {
                         Button {
                             self.selectedImage = nil
-                            self.pickerItem = nil
+                            self.pickerItem    = nil
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.title2)
                                 .foregroundStyle(.white)
                                 .shadow(radius: 4)
                         }
+                        .accessibilityLabel("Remove photo")
                         .padding(8)
                     }
             }
@@ -41,9 +43,11 @@ struct PhotoPickerView: View {
                 .foregroundStyle(Color.pmPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
+            // Explicit @MainActor Task so the @Binding mutation is always on main thread
             .onChange(of: pickerItem) { _, newItem in
-                Task {
-                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                Task { @MainActor in
+                    guard let newItem else { return }
+                    if let data  = try? await newItem.loadTransferable(type: Data.self),
                        let image = UIImage(data: data) {
                         selectedImage = image
                     }
