@@ -6,12 +6,23 @@ struct DashboardView: View {
     @Query(sort: \DailyLog.date, order: .reverse) private var logs: [DailyLog]
     @Query private var profiles: [UserProfile]
     @Query private var streaks: [StreakRecord]
+    @Query private var gamificationProfiles: [GamificationProfile]
 
-    @State private var showLogger = false
+    @State private var showLogger           = false
+    @State private var showMirrorMode       = false
+    @State private var showShareSheet       = false
     @State private var gamificationInitialized = false
 
-    private var profile: UserProfile? { profiles.first }
-    private var streak: StreakRecord { streaks.first ?? StreakRecord() }
+    // Celebration state
+    @State private var showCelebration      = false
+    @State private var celebrationTitle     = "PERFECT POSTURE!"
+    @State private var celebrationSubtitle  = ""
+    @State private var previousLevel: Int?  = nil
+
+    private var profile:    UserProfile? { profiles.first }
+    private var streak:     StreakRecord { streaks.first ?? StreakRecord() }
+    private var gamProfile: GamificationProfile? { gamificationProfiles.first }
+
     private var todayLog: DailyLog? {
         logs.first { Calendar.current.isDateInToday($0.date) }
     }
@@ -23,52 +34,108 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Greeting
-                    greetingSection
+            ZStack {
+                // Ambient particle background — always present
+                Color.pmGroupedBackground.ignoresSafeArea()
+                AmbientParticleBackground(particleCount: 16)
 
-                    // Today's Score
-                    todayScoreSection
-
-                    // Quick Log Button
-                    if todayLog == nil {
-                        PMButton(title: "Log Today's Posture", icon: "plus.circle.fill") {
-                            showLogger = true
-                        }
-                        .padding(.horizontal)
-                    }
-
-                    // Stats Grid
-                    statsGrid
-
-                    // Gamification Widget
-                    NavigationLink(destination: LevelsView()) {
-                        GamificationDashboardWidget()
+                ScrollView {
+                    VStack(spacing: 20) {
+                        greetingSection
+                        todayScoreSection
+                        if todayLog == nil {
+                            PMButton(title: "Log Today's Posture", icon: "plus.circle.fill") {
+                                showLogger = true
+                            }
                             .padding(.horizontal)
+                        }
+                        statsGrid
+                        NavigationLink(destination: LevelsView()) {
+                            GamificationDashboardWidget()
+                                .padding(.horizontal)
+                        }
+                        weekGlanceSection
+                        dailyTipSection
                     }
-
-                    // Week at a Glance
-                    weekGlanceSection
-
-                    // Tips
-                    dailyTipSection
+                    .padding(.vertical)
                 }
-                .padding(.vertical)
+
+                // Full-screen celebration overlay
+                if showCelebration {
+                    CelebrationOverlay(
+                        isShowing:  $showCelebration,
+                        title:      celebrationTitle,
+                        subtitle:   celebrationSubtitle
+                    )
+                    .transition(.opacity)
+                    .zIndex(100)
+                }
             }
-            .background(Color.pmGroupedBackground)
             .navigationTitle("Dashboard")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 12) {
+                        // Mirror Mode button
+                        Button {
+                            showMirrorMode = true
+                        } label: {
+                            Image(systemName: "camera.viewfinder")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundStyle(Color.pmPrimary)
+                                .neonGlow(radius: 5)
+                        }
+
+                        // Share glow-up
+                        if todayLog != nil {
+                            Button {
+                                showShareSheet = true
+                            } label: {
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundStyle(Color.pmGold)
+                                    .goldGlow(radius: 5)
+                            }
+                        }
+                    }
+                }
+            }
             .sheet(isPresented: $showLogger) {
                 DailyLoggerView()
             }
+            .fullScreenCover(isPresented: $showMirrorMode) {
+                MirrorModeView()
+            }
+            .sheet(isPresented: $showShareSheet) {
+                GlowUpShareView(
+                    score:     todayLog?.postureRating ?? 0,
+                    streak:    streak.currentStreak,
+                    level:     gamProfile?.currentLevel ?? 1,
+                    levelName: gamProfile?.levelName ?? "Slouch",
+                    userName:  profile?.displayName ?? ""
+                )
+            }
             .onAppear {
-                if !gamificationInitialized, let userProfile = profile {
-                    GamificationService.shared.initializeGamification(context: modelContext, userProfileId: userProfile.id)
-                    gamificationInitialized = true
-                }
+                initGameIfNeeded()
+                previousLevel = gamProfile?.currentLevel
+            }
+            .onChange(of: todayLog?.postureRating) { old, new in
+                // Celebrate when a perfect score is first logged
+                guard let score = new, old == nil || old == nil, score >= 9 else { return }
+                triggerCelebration(title: "PERFECT POSTURE!", subtitle: "Score: \(score)/10 — Absolute champion")
+            }
+            .onChange(of: todayLog) { old, new in
+                // Detect when log is freshly created with perfect score
+                guard old == nil, let log = new, log.postureRating >= 9 else { return }
+                triggerCelebration(title: "PERFECT POSTURE!", subtitle: "Score: \(log.postureRating)/10")
+            }
+            .onChange(of: gamProfile?.currentLevel) { old, new in
+                guard let old = old, let new = new, new > old else { return }
+                triggerCelebration(title: "LEVEL UP!", subtitle: "You reached Level \(new) — \(gamProfile?.levelName ?? "")")
             }
         }
     }
+
+    // MARK: - Sections
 
     private var greetingSection: some View {
         HStack {
@@ -78,6 +145,13 @@ struct DashboardView: View {
                     .foregroundStyle(.secondary)
                 Text(profile?.displayName ?? "there")
                     .font(.title.weight(.bold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.pmText, Color.pmPrimary.opacity(0.85)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
             }
             Spacer()
             StreakBadge(count: streak.currentStreak)
@@ -95,63 +169,67 @@ struct DashboardView: View {
     }
 
     private var todayScoreSection: some View {
-        VStack(spacing: 12) {
-            if let log = todayLog {
-                ScoreRing(score: log.postureRating, maxScore: 10, size: 130, label: "Today's Posture")
+        ZStack {
+            // Card background with neon border when high score
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.pmCardBackground)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(
+                            LinearGradient(
+                                colors: scoreIsHigh
+                                    ? [Color.pmPrimary.opacity(0.6), Color.pmGold.opacity(0.4)]
+                                    : [Color.pmPrimary.opacity(0.12), Color.pmPrimary.opacity(0.12)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: scoreIsHigh ? 1.5 : 1
+                        )
+                )
+                .shadow(
+                    color: scoreIsHigh ? Color.pmPrimary.opacity(0.15) : .clear,
+                    radius: 12
+                )
 
-                HStack(spacing: 20) {
-                    MiniStat(title: "Pain", value: "\(log.painLevel)/10", icon: "bolt.fill", color: log.painLevel > 5 ? .pmDanger : .pmSuccess)
-                    MiniStat(title: "Neck", value: "\(log.neckAlignment)/10", icon: "figure.wave", color: .pmSecondary)
-                    MiniStat(title: "Spine", value: "\(log.spineAlignment)/10", icon: "figure.stand", color: .pmPrimary)
+            VStack(spacing: 12) {
+                if let log = todayLog {
+                    ScoreRing(score: log.postureRating, maxScore: 10, size: 130, label: "Today's Posture")
+
+                    HStack(spacing: 20) {
+                        MiniStat(title: "Pain",  value: "\(log.painLevel)/10",      icon: "bolt.fill",    color: log.painLevel > 5 ? .pmDanger : .pmSuccess)
+                        MiniStat(title: "Neck",  value: "\(log.neckAlignment)/10",  icon: "figure.wave",  color: .pmSecondary)
+                        MiniStat(title: "Spine", value: "\(log.spineAlignment)/10", icon: "figure.stand", color: .pmPrimary)
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Image(systemName: "plus.circle.dashed")
+                            .font(.system(size: 50))
+                            .foregroundStyle(Color.pmPrimary.opacity(0.5))
+                        Text("No log yet today")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text("Tap below to track your posture")
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 20)
                 }
-            } else {
-                VStack(spacing: 8) {
-                    Image(systemName: "plus.circle.dashed")
-                        .font(.system(size: 50))
-                        .foregroundStyle(Color.pmPrimary.opacity(0.5))
-                    Text("No log yet today")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("Tap below to track your posture")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(.vertical, 20)
             }
+            .padding(20)
         }
-        .padding(20)
-        .frame(maxWidth: .infinity)
-        .background(Color.pmCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal)
+    }
+
+    private var scoreIsHigh: Bool {
+        (todayLog?.postureRating ?? 0) >= 8
     }
 
     private var statsGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            StatCard(
-                title: "Current Streak",
-                value: "\(streak.currentStreak) days",
-                icon: "flame.fill",
-                color: .orange
-            )
-            StatCard(
-                title: "Best Streak",
-                value: "\(streak.longestStreak) days",
-                icon: "trophy.fill",
-                color: .pmAccent
-            )
-            StatCard(
-                title: "Total Logs",
-                value: "\(streak.totalDaysLogged)",
-                icon: "calendar.badge.checkmark",
-                color: .pmSecondary
-            )
-            StatCard(
-                title: "Avg Posture",
-                value: averagePosture,
-                icon: "chart.line.uptrend.xyaxis",
-                color: .pmPrimary
-            )
+            StatCard(title: "Current Streak", value: "\(streak.currentStreak) days",    icon: "flame.fill",                 color: .pmGold)
+            StatCard(title: "Best Streak",    value: "\(streak.longestStreak) days",    icon: "trophy.fill",                color: .pmAccent)
+            StatCard(title: "Total Logs",     value: "\(streak.totalDaysLogged)",        icon: "calendar.badge.checkmark",   color: .pmSecondary)
+            StatCard(title: "Avg Posture",    value: averagePosture,                     icon: "chart.line.uptrend.xyaxis",  color: .pmPrimary)
         }
         .padding(.horizontal)
     }
@@ -170,7 +248,7 @@ struct DashboardView: View {
             HStack(spacing: 8) {
                 ForEach(0..<7, id: \.self) { dayOffset in
                     let date = Date().daysAgo(6 - dayOffset)
-                    let log = logs.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
+                    let log  = logs.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
 
                     VStack(spacing: 6) {
                         Text(date.dayOfWeek)
@@ -179,8 +257,13 @@ struct DashboardView: View {
 
                         ZStack {
                             Circle()
-                                .fill(log != nil ? Color.pmPrimary : Color.pmPrimary.opacity(0.1))
+                                .fill(
+                                    log != nil
+                                        ? AnyShapeStyle(LinearGradient(colors: [.pmPrimary, .pmGold.opacity(0.6)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        : AnyShapeStyle(Color.pmPrimary.opacity(0.1))
+                                )
                                 .frame(width: 36, height: 36)
+                                .shadow(color: log != nil ? Color.pmPrimary.opacity(0.4) : .clear, radius: 6)
 
                             if let log {
                                 Text("\(log.postureRating)")
@@ -201,19 +284,19 @@ struct DashboardView: View {
 
     private var dailyTipSection: some View {
         let tips = [
-            ("Stand Tall", "Imagine a string pulling the top of your head toward the ceiling", "figure.stand"),
-            ("Screen Height", "Your eyes should be level with the top third of your monitor", "desktopcomputer"),
-            ("Move Often", "Set a timer to stand and stretch every 30 minutes", "timer"),
-            ("Breathe Deep", "Deep diaphragmatic breathing helps relax tight posture muscles", "wind"),
-            ("Shoulder Check", "Roll your shoulders back and down — that's your neutral position", "figure.arms.open")
+            ("Stand Tall",       "Imagine a string pulling the top of your head toward the ceiling",         "figure.stand"),
+            ("Screen Height",    "Your eyes should be level with the top third of your monitor",             "desktopcomputer"),
+            ("Move Often",       "Set a timer to stand and stretch every 30 minutes",                        "timer"),
+            ("Breathe Deep",     "Deep diaphragmatic breathing helps relax tight posture muscles",           "wind"),
+            ("Shoulder Check",   "Roll your shoulders back and down — that's your neutral position",         "figure.arms.open")
         ]
-
         let tip = tips[Calendar.current.component(.day, from: Date()) % tips.count]
 
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Image(systemName: "lightbulb.fill")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(Color.pmGold)
+                    .goldGlow(radius: 6)
                 Text("Daily Tip")
                     .font(.headline)
             }
@@ -221,6 +304,7 @@ struct DashboardView: View {
                 Image(systemName: tip.2)
                     .font(.title2)
                     .foregroundStyle(Color.pmPrimary)
+                    .neonGlow(radius: 6)
                     .frame(width: 40)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(tip.0)
@@ -236,12 +320,29 @@ struct DashboardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .padding(.horizontal)
     }
+
+    // MARK: - Helpers
+
+    private func initGameIfNeeded() {
+        guard !gamificationInitialized, let userProfile = profile else { return }
+        GamificationService.shared.initializeGamification(context: modelContext, userProfileId: userProfile.id)
+        gamificationInitialized = true
+    }
+
+    private func triggerCelebration(title: String, subtitle: String) {
+        guard !showCelebration else { return }
+        celebrationTitle    = title
+        celebrationSubtitle = subtitle
+        withAnimation { showCelebration = true }
+    }
 }
+
+// MARK: - Mini Stat
 
 struct MiniStat: View {
     let title: String
     let value: String
-    let icon: String
+    let icon:  String
     let color: Color
 
     var body: some View {
