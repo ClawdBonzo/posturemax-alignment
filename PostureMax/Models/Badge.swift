@@ -62,9 +62,9 @@ enum BadgeType: String, Codable, CaseIterable {
         case .posturePerfectionist:
             return "Posture Perfectionist"
         case .weekWarrior:
-            return "Week Warrior"
+            return "7-Day Champion"
         case .monthMaster:
-            return "Month Master"
+            return "30-Day Legend"
         }
     }
 
@@ -130,11 +130,11 @@ enum BadgeType: String, Codable, CaseIterable {
         case .yearStreak:
             return "crown.fill"
         case .level5:
-            return "level.5.fill"
+            return "5.circle.fill"
         case .level10:
-            return "level.10.fill"
+            return "10.circle.fill"
         case .level25:
-            return "level.25.fill"
+            return "25.circle"
         case .level50:
             return "crown.fill"
         case .tenRoutines:

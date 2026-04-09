@@ -2,6 +2,7 @@ import Foundation
 import SwiftData
 
 struct StreakService {
+    @MainActor
     static func updateStreak(context: ModelContext) {
         let descriptor = FetchDescriptor<StreakRecord>()
         let records = (try? context.fetch(descriptor)) ?? []
@@ -33,6 +34,7 @@ struct StreakService {
         streak.longestStreak = max(streak.longestStreak, streak.currentStreak)
     }
 
+    @MainActor
     static func getCurrentStreak(context: ModelContext) -> StreakRecord {
         let descriptor = FetchDescriptor<StreakRecord>()
         let records = (try? context.fetch(descriptor)) ?? []

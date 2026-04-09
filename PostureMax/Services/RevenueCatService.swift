@@ -25,8 +25,11 @@ enum RCConstants {
     //
     // The current key is the placeholder from initial setup — it will not process
     // real purchases. Replace it before TestFlight external testing.
+    // TODO: Replace with live appl_... key before App Store submission
+    // See setup steps above. Current key is the initial placeholder and
+    // will NOT process real purchases.
     static let apiKey = "test_JYgyHftpBlZsQleHsnqldwQRscJ"
-    // ↑ Replace with: "appl_XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    // ↑ Replace with your production key from RevenueCat → Project Settings → API Keys
 
     static let entitlementID = "pro"
 

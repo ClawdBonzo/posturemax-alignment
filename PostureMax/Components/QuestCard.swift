@@ -4,6 +4,8 @@ struct QuestCard: View {
     let quest: Quest
     let isCompleted: Bool
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
@@ -15,7 +17,7 @@ struct QuestCard: View {
                 }
                 .frame(width: 44, height: 44)
                 .background(Color.pmPrimary.opacity(0.1))
-                .cornerRadius(10)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(quest.displayTitle)
@@ -39,7 +41,7 @@ struct QuestCard: View {
                 .padding(8)
                 .background(Color.pmAccent.opacity(0.15))
                 .foregroundColor(.pmAccent)
-                .cornerRadius(8)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
 
             // Progress Bar
@@ -65,7 +67,7 @@ struct QuestCard: View {
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(Color.pmSuccess)
                                 .frame(width: geometry.size.width * min(quest.progressPercent, 1.0))
-                                .animation(.easeInOut(duration: 0.3), value: quest.progressPercent)
+                                .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: quest.progressPercent)
                         }
                     }
                     .frame(height: 8)
@@ -89,12 +91,12 @@ struct QuestCard: View {
                 }
                 .padding(8)
                 .background(Color.pmSuccess.opacity(0.1))
-                .cornerRadius(8)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             }
         }
         .padding(12)
         .background(Color.pmCardBackground)
-        .cornerRadius(12)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(

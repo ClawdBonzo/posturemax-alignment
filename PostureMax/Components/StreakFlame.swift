@@ -5,6 +5,7 @@ struct StreakFlame: View {
     let isPulsing: Bool = true
 
     @State private var isAnimating = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 8) {
@@ -45,12 +46,13 @@ struct StreakFlame: View {
                 .foregroundColor(.pmAccent)
         }
         .onAppear {
-            if isPulsing {
-                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                    isAnimating = true
-                }
+            guard isPulsing, !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+                isAnimating = true
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Streak: \(streak) days, \(String(format: "%.1f", min(1.0 + Double(streak) / 10.0, 5.0)))x XP multiplier")
     }
 }
 

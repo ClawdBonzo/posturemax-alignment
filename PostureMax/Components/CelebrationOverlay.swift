@@ -9,6 +9,8 @@ struct CelebrationOverlay: View {
     var title: String      = "LEVEL UP!"
     var subtitle: String   = "You're becoming stronger"
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     @State private var particles:   [CelebParticle] = []
     @State private var titleScale:  CGFloat = 0.2
     @State private var titleOpacity: Double = 0
@@ -18,10 +20,10 @@ struct CelebrationOverlay: View {
 
     var body: some View {
         ZStack {
-            // Dark scrim
+            // Dark scrim — tap to dismiss early
             Color.black.opacity(bgOpacity * 0.72)
                 .ignoresSafeArea()
-                .allowsHitTesting(true) // swallow taps during celebration
+                .onTapGesture { dismiss() }
 
             // Light beams radiating upward
             ZStack {
@@ -80,37 +82,58 @@ struct CelebrationOverlay: View {
         .onChange(of: isShowing) { _, newValue in
             if newValue { play() }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title). \(subtitle)")
+        .accessibilityAddTraits(.updatesFrequently)
     }
 
     private func play() {
+        if reduceMotion {
+            // Instant show → short pause → instant hide (no motion)
+            bgOpacity    = 0.72
+            titleOpacity = 1
+            titleScale   = 1.0
+            iconScale    = 1.0
+            beamScale    = 0      // no beams in reduce-motion mode
+            particles    = []     // no particles
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                dismiss()
+            }
+            return
+        }
+
         particles = CelebParticle.generate(count: 60)
 
         withAnimation(.easeOut(duration: 0.25)) {
             bgOpacity = 1
         }
         withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) {
-            beamScale  = 1
-            titleScale = 1.0
+            beamScale    = 1
+            titleScale   = 1.0
             titleOpacity = 1
-            iconScale  = 1.0
+            iconScale    = 1.0
         }
 
         // Dismiss after 2.2 s
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
-            withAnimation(.easeIn(duration: 0.4)) {
-                bgOpacity    = 0
-                beamScale    = 1.5
-                titleOpacity = 0
-                titleScale   = 1.3
-                iconScale    = 1.3
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-                isShowing    = false
-                particles    = []
-                titleScale   = 0.2
-                iconScale    = 0.3
-                beamScale    = 0
-            }
+            dismiss()
+        }
+    }
+
+    private func dismiss() {
+        withAnimation(.easeIn(duration: reduceMotion ? 0.15 : 0.4)) {
+            bgOpacity    = 0
+            beamScale    = 1.5
+            titleOpacity = 0
+            titleScale   = 1.3
+            iconScale    = 1.3
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + (reduceMotion ? 0.2 : 0.45)) {
+            isShowing  = false
+            particles  = []
+            titleScale = 0.2
+            iconScale  = 0.3
+            beamScale  = 0
         }
     }
 }
@@ -120,6 +143,7 @@ struct CelebrationOverlay: View {
 private struct LightBeamShape: View {
     let angle: Double
     @State private var flicker: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Rectangle()
@@ -134,8 +158,9 @@ private struct LightBeamShape: View {
             .offset(y: -210)
             .rotationEffect(.degrees(angle))
             .blur(radius: 3)
-            .opacity(flicker ? 0.85 : 0.4)
+            .opacity(reduceMotion ? 0.55 : (flicker ? 0.85 : 0.4))
             .onAppear {
+                guard !reduceMotion else { return }
                 withAnimation(
                     .easeInOut(duration: Double.random(in: 0.3...0.7))
                     .repeatForever(autoreverses: true)

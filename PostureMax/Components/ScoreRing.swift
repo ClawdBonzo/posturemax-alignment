@@ -8,6 +8,7 @@ struct ScoreRing: View {
     var label:     String? = nil
 
     @State private var glowPulse = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var progress: Double {
         Double(score) / Double(maxScore)
@@ -85,12 +86,12 @@ struct ScoreRing: View {
             }
             .frame(width: size, height: size)
             .onAppear {
-                if progress >= 0.8 {
-                    withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
-                        glowPulse = true
-                    }
+                guard progress >= 0.8, !reduceMotion else { return }
+                withAnimation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true)) {
+                    glowPulse = true
                 }
             }
+            .accessibilityLabel(label ?? "Score: \(score) out of \(maxScore)")
 
             if let label {
                 Text(label)

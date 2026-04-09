@@ -6,6 +6,7 @@ struct SpineGlowEffect: View {
 
     @State private var pulse       = false
     @State private var particleSeed: Int = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     // Vertebra count
     private let segmentCount = 7
@@ -51,14 +52,18 @@ struct SpineGlowEffect: View {
             }
         }
         .onAppear {
+            guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
                 pulse = true
             }
             particleSeed = Int.random(in: 0...1000)
         }
         .onChange(of: intensity) { _, _ in
+            guard !reduceMotion else { return }
             particleSeed = Int.random(in: 0...1000)
         }
+        .accessibilityLabel("Spine alignment: \(Int(intensity * 100))%")
+        .accessibilityHidden(reduceMotion)
     }
 }
 
