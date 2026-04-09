@@ -17,7 +17,7 @@ enum RCConstants {
 
 // MARK: - Purchase State
 @Observable
-final class PurchaseManager {
+final class PurchaseManager: @unchecked Sendable {
     static let shared = PurchaseManager()
 
     var isPro: Bool = false

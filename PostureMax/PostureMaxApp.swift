@@ -12,7 +12,10 @@ struct PostureMaxApp: App {
             DailyLog.self,
             PosturePhoto.self,
             RoutineItem.self,
-            StreakRecord.self
+            StreakRecord.self,
+            GamificationProfile.self,
+            Quest.self,
+            Badge.self
         ])
         let config = ModelConfiguration(
             schema: schema,

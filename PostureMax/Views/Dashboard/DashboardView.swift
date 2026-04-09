@@ -8,6 +8,7 @@ struct DashboardView: View {
     @Query private var streaks: [StreakRecord]
 
     @State private var showLogger = false
+    @State private var gamificationInitialized = false
 
     private var profile: UserProfile? { profiles.first }
     private var streak: StreakRecord { streaks.first ?? StreakRecord() }
@@ -41,6 +42,12 @@ struct DashboardView: View {
                     // Stats Grid
                     statsGrid
 
+                    // Gamification Widget
+                    NavigationLink(destination: LevelsView()) {
+                        GamificationDashboardWidget()
+                            .padding(.horizontal)
+                    }
+
                     // Week at a Glance
                     weekGlanceSection
 
@@ -53,6 +60,12 @@ struct DashboardView: View {
             .navigationTitle("Dashboard")
             .sheet(isPresented: $showLogger) {
                 DailyLoggerView()
+            }
+            .onAppear {
+                if !gamificationInitialized, let userProfile = profile {
+                    GamificationService.shared.initializeGamification(context: modelContext, userProfileId: userProfile.id)
+                    gamificationInitialized = true
+                }
             }
         }
     }

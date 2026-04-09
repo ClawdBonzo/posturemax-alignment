@@ -4,6 +4,8 @@ import SwiftData
 struct DailyLoggerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Query private var profiles: [UserProfile]
+    @Query private var streaks: [StreakRecord]
 
     @State private var postureRating: Int = 5
     @State private var painLevel: Int = 3
@@ -15,6 +17,9 @@ struct DailyLoggerView: View {
     @State private var notes: String = ""
     @State private var selectedImage: UIImage? = nil
     @State private var completedChecklist: Set<String> = []
+
+    private var profile: UserProfile? { profiles.first }
+    private var streak: StreakRecord { streaks.first ?? StreakRecord() }
 
     private let checklistItems = [
         "Took stretch breaks every 30 min",
@@ -210,6 +215,29 @@ struct DailyLoggerView: View {
 
         modelContext.insert(log)
         StreakService.updateStreak(context: modelContext)
+
+        // Check for streak milestones and trigger haptics
+        let updatedStreak = StreakService.getCurrentStreak(context: modelContext)
+        let streakMilestones = [7, 14, 30, 60, 90, 365]
+        if streakMilestones.contains(updatedStreak.currentStreak) {
+            HapticService.shared.playStreakMilestoneHaptic()
+        }
+
+        // Award XP for log
+        if let userProfile = profile {
+            GamificationService.shared.awardXPForLog(
+                context: modelContext,
+                userProfileId: userProfile.id,
+                posture: postureRating,
+                pain: painLevel,
+                streak: updatedStreak.currentStreak
+            )
+
+            QuestService.shared.updateQuestProgress(context: modelContext, questType: .logTimes, increment: 1)
+
+            HapticService.shared.playLogHaptic()
+        }
+
         try? modelContext.save()
         dismiss()
     }

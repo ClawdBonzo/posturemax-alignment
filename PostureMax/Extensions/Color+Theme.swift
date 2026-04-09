@@ -9,10 +9,14 @@ extension Color {
     static let pmWarning = Color(red: 0.98, green: 0.82, blue: 0.0)        // Yellow
     static let pmDanger = Color(red: 0.93, green: 0.26, blue: 0.26)        // Red
 
+    // Text colors
+    static let pmText = Color(uiColor: .label)
+    static let pmSecondaryText = Color(uiColor: .secondaryLabel)
+
     // Background colors
-    static let pmBackground = Color(.systemBackground)
-    static let pmCardBackground = Color(.secondarySystemBackground)
-    static let pmGroupedBackground = Color(.systemGroupedBackground)
+    static let pmBackground = Color(uiColor: .systemBackground)
+    static let pmCardBackground = Color(uiColor: .secondarySystemBackground)
+    static let pmGroupedBackground = Color(uiColor: .systemGroupedBackground)
 
     // Gradient
     static let pmGradientStart = Color(red: 0.0, green: 0.75, blue: 0.72)
