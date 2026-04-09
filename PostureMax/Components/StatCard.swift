@@ -33,16 +33,19 @@ struct StreakBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "flame.fill")
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.pmGold)
+                .goldGlow(radius: 4)
             Text("\(count)")
                 .font(.headline.weight(.bold).monospacedDigit())
+                .foregroundStyle(Color.pmGold)
             Text("day streak")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
-        .background(Color.orange.opacity(0.12))
+        .background(Color.pmGold.opacity(0.10))
         .clipShape(Capsule())
+        .overlay(Capsule().stroke(Color.pmGold.opacity(0.25), lineWidth: 1))
     }
 }

@@ -38,22 +38,23 @@ final class GamificationService: @unchecked Sendable {
             xpToAward += 25
         }
 
+        // Capture level BEFORE awarding XP so we can detect level-up
+        let previousLevel = profile.currentLevel
+
         // Award XP
         profile.totalXP += xpToAward
         profile.lifetimeXP += xpToAward
-        profile.currentLevelXP += xpToAward
 
         // Check for level up
-        let previousLevel = profile.currentLevel
-        let newLevel = profile.currentLevel  // Trigger computed property
+        let newLevel = profile.currentLevel
 
         if newLevel > previousLevel {
-            // Level up occurred
+            // Level up occurred — reset currentLevelXP to XP earned since new level's threshold
             HapticService.shared.playLevelUpHaptic()
-            // Reset XP to next level threshold
-            if newLevel < profile.levelUpAt.count {
-                profile.currentLevelXP = profile.totalXP - profile.levelUpAt[newLevel]
-            }
+            let currentThreshold = newLevel - 1 < profile.levelUpAt.count ? profile.levelUpAt[newLevel - 1] : 0
+            profile.currentLevelXP = profile.totalXP - currentThreshold
+        } else {
+            profile.currentLevelXP += xpToAward
         }
 
         try? context.save()
@@ -62,18 +63,19 @@ final class GamificationService: @unchecked Sendable {
     func awardXPForQuestCompletion(context: ModelContext, userProfileId: UUID, xp: Int) {
         guard let profile = getGamificationProfile(context: context, userProfileId: userProfileId) else { return }
 
+        let previousLevel = profile.currentLevel
+
         profile.totalXP += xp
         profile.lifetimeXP += xp
-        profile.currentLevelXP += xp
 
-        let previousLevel = profile.currentLevel
         let newLevel = profile.currentLevel
 
         if newLevel > previousLevel {
             HapticService.shared.playLevelUpHaptic()
-            if newLevel < profile.levelUpAt.count {
-                profile.currentLevelXP = profile.totalXP - profile.levelUpAt[newLevel]
-            }
+            let currentThreshold = newLevel - 1 < profile.levelUpAt.count ? profile.levelUpAt[newLevel - 1] : 0
+            profile.currentLevelXP = profile.totalXP - currentThreshold
+        } else {
+            profile.currentLevelXP += xp
         }
 
         try? context.save()

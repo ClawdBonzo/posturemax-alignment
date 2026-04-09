@@ -36,8 +36,9 @@ final class GamificationProfile {
     }
 
     var nextLevelThreshold: Int {
-        let nextLevel = min(currentLevel + 1, levelUpAt.count)
-        return nextLevel < levelUpAt.count ? levelUpAt[nextLevel] : levelUpAt.last ?? 27460
+        // levelUpAt is 0-indexed; levelUpAt[currentLevel] is the XP to enter the next level
+        guard currentLevel < levelUpAt.count else { return levelUpAt.last ?? 27460 }
+        return levelUpAt[currentLevel]
     }
 
     var xpToNextLevel: Int {

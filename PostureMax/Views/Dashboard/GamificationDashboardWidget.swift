@@ -3,46 +3,57 @@ import SwiftData
 
 struct GamificationDashboardWidget: View {
     @Query var gamificationProfiles: [GamificationProfile]
-    @Query var activeQuests: [Quest]
+    @Query(filter: #Predicate<Quest> { !$0.isWeekly }) var dailyQuests: [Quest]
 
-    var gamificationProfile: GamificationProfile? {
-        gamificationProfiles.first
-    }
+    var gamificationProfile: GamificationProfile? { gamificationProfiles.first }
+
+    var incompleteDaily: [Quest] { dailyQuests.filter { !$0.isCompleted } }
+    var completedCount:  Int     { dailyQuests.filter { $0.isCompleted }.count }
 
     var body: some View {
         VStack(spacing: 16) {
             if let profile = gamificationProfile {
                 // Level Progress Card
                 LevelProgressCard(
-                    currentLevel: profile.currentLevel,
-                    levelName: profile.levelName,
-                    currentXP: profile.currentLevelXP,
-                    xpToNextLevel: profile.xpToNextLevel,
+                    currentLevel:    profile.currentLevel,
+                    levelName:       profile.levelName,
+                    currentXP:       profile.currentLevelXP,
+                    xpToNextLevel:   profile.xpToNextLevel,
                     progressPercent: profile.xpProgressPercent
                 )
 
                 // Active Quests Section
-                if !activeQuests.isEmpty {
+                if !dailyQuests.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("Daily Quests")
                                 .font(.headline.weight(.semibold))
                                 .foregroundColor(.pmText)
                             Spacer()
-                            Text("\(activeQuests.filter { $0.isCompleted }.count)/\(activeQuests.count)")
+                            Text("\(completedCount)/\(dailyQuests.count)")
                                 .font(.caption.weight(.semibold))
                                 .foregroundColor(.pmAccent)
                         }
 
                         VStack(spacing: 8) {
-                            ForEach(activeQuests.prefix(2), id: \.id) { quest in
-                                QuestCard(quest: quest, isCompleted: quest.isCompleted)
+                            ForEach(incompleteDaily.prefix(2), id: \.id) { quest in
+                                QuestCard(quest: quest, isCompleted: false)
+                            }
+                            if incompleteDaily.isEmpty {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(Color.pmSuccess)
+                                    Text("All daily quests complete!")
+                                        .font(.subheadline.weight(.medium))
+                                        .foregroundStyle(Color.pmSuccess)
+                                }
+                                .padding(.vertical, 8)
                             }
                         }
                     }
                     .padding(16)
                     .background(Color.pmCardBackground)
-                    .cornerRadius(14)
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
                             .stroke(Color.pmPrimary.opacity(0.15), lineWidth: 1)

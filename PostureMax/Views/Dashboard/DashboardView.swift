@@ -117,16 +117,12 @@ struct DashboardView: View {
             .onAppear {
                 initGameIfNeeded()
                 previousLevel = gamProfile?.currentLevel
-            }
-            .onChange(of: todayLog?.postureRating) { old, new in
-                // Celebrate when a perfect score is first logged
-                guard let score = new, old == nil || old == nil, score >= 9 else { return }
-                triggerCelebration(title: "PERFECT POSTURE!", subtitle: "Score: \(score)/10 — Absolute champion")
+                generateQuestsIfNeeded()
             }
             .onChange(of: todayLog) { old, new in
-                // Detect when log is freshly created with perfect score
+                // Celebrate when today's log is first created with a perfect score
                 guard old == nil, let log = new, log.postureRating >= 9 else { return }
-                triggerCelebration(title: "PERFECT POSTURE!", subtitle: "Score: \(log.postureRating)/10")
+                triggerCelebration(title: "PERFECT POSTURE!", subtitle: "Score: \(log.postureRating)/10 — Absolute champion")
             }
             .onChange(of: gamProfile?.currentLevel) { old, new in
                 guard let old = old, let new = new, new > old else { return }
@@ -327,6 +323,12 @@ struct DashboardView: View {
         guard !gamificationInitialized, let userProfile = profile else { return }
         GamificationService.shared.initializeGamification(context: modelContext, userProfileId: userProfile.id)
         gamificationInitialized = true
+    }
+
+    private func generateQuestsIfNeeded() {
+        guard let userProfile = profile else { return }
+        QuestService.shared.generateDailyQuests(context: modelContext, userProfileId: userProfile.id)
+        QuestService.shared.generateWeeklyQuests(context: modelContext, userProfileId: userProfile.id)
     }
 
     private func triggerCelebration(title: String, subtitle: String) {
