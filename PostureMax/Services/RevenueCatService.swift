@@ -9,10 +9,10 @@ enum RCConstants {
     static let entitlementID = "pro"
 
     // Product identifiers (must match App Store Connect)
-    static let weeklyProductID   = "posturemax_weekly"
-    static let monthlyProductID  = "posturemax_monthly"
-    static let yearlyProductID   = "posturemax_yearly"
-    static let lifetimeProductID = "posturemax_lifetime"
+    static let weeklyProductID   = "com.clawdbonzo.posturemax.weekly"
+    static let monthlyProductID  = "com.clawdbonzo.posturemax.monthly"
+    static let yearlyProductID   = "com.clawdbonzo.posturemax.yearly"
+    static let lifetimeProductID = "com.clawdbonzo.posturemax.lifetime"
 }
 
 // MARK: - Purchase State
