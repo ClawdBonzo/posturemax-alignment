@@ -80,6 +80,7 @@ final class QuestService: @unchecked Sendable {
                 quest.currentProgress += increment
                 if quest.isCompleted && quest.completedDate == nil {
                     quest.completedDate = Date()
+                    HapticService.shared.playQuestCompletionHaptic()
                 }
             }
         }

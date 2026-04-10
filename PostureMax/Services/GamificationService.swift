@@ -57,6 +57,63 @@ final class GamificationService: @unchecked Sendable {
             profile.currentLevelXP += xpToAward
         }
 
+        // Check badge unlocks after each log
+        checkAndUnlockBadges(context: context, posture: posture, streak: streak, level: profile.currentLevel)
+
+        try? context.save()
+    }
+
+    // MARK: - Badge Unlock Checks
+
+    func checkAndUnlockBadges(context: ModelContext, posture: Int = 0, streak: Int = 0, level: Int = 0) {
+        let descriptor = FetchDescriptor<Badge>()
+        guard let badges = try? context.fetch(descriptor) else { return }
+
+        // Build a set of already-unlocked types for quick lookup
+        let unlocked = Set(badges.filter { $0.isUnlocked }.map { $0.badgeType })
+
+        func unlock(_ type: BadgeType) {
+            guard !unlocked.contains(type),
+                  let badge = badges.first(where: { $0.badgeType == type }) else { return }
+            badge.unlockedDate = Date()
+            HapticService.shared.playBadgeUnlockHaptic()
+        }
+
+        // Log-count based
+        let logDescriptor = FetchDescriptor<DailyLog>()
+        let logCount = (try? context.fetchCount(logDescriptor)) ?? 0
+        if logCount >= 1  { unlock(.firstLog) }
+
+        // Posture score based
+        if posture >= 10  { unlock(.firstPerfectScore) }
+        if posture >= 7   { unlock(.posturePerfectionist) }
+
+        // Streak based
+        if streak >= 7    { unlock(.sevenDayStreak);    unlock(.weekWarrior) }
+        if streak >= 30   { unlock(.thirtyDayStreak);   unlock(.monthMaster) }
+        if streak >= 60   { unlock(.streakMaster) }
+        if streak >= 100  { unlock(.hundredDayStreak) }
+        if streak >= 365  { unlock(.yearStreak) }
+
+        // Level based
+        if level >= 5     { unlock(.level5) }
+        if level >= 10    { unlock(.level10) }
+        if level >= 25    { unlock(.level25) }
+        if level >= 50    { unlock(.level50) }
+
+        try? context.save()
+    }
+
+    // MARK: - Badge Initialization
+
+    func initializeBadges(context: ModelContext) {
+        let descriptor = FetchDescriptor<Badge>()
+        let existing = (try? context.fetch(descriptor)) ?? []
+        let existingTypes = Set(existing.map { $0.badgeType })
+
+        for type_ in BadgeType.allCases where !existingTypes.contains(type_) {
+            context.insert(Badge(badgeType: type_))
+        }
         try? context.save()
     }
 

@@ -51,7 +51,7 @@ struct DashboardView: View {
                         }
                         statsGrid
                         NavigationLink(destination: LevelsView()) {
-                            GamificationDashboardWidget()
+                            GamificationDashboardWidget(streak: streak.currentStreak)
                                 .padding(.horizontal)
                         }
                         weekGlanceSection
@@ -189,7 +189,11 @@ struct DashboardView: View {
 
             VStack(spacing: 12) {
                 if let log = todayLog {
-                    ScoreRing(score: log.postureRating, maxScore: 10, size: 130, label: "Today's Posture")
+                    HStack(alignment: .center, spacing: 16) {
+                        ScoreRing(score: log.postureRating, maxScore: 10, size: 130, label: "Today's Posture")
+                        SpineGlowEffect(intensity: Double(log.postureRating) / 10.0)
+                            .frame(width: 22, height: 140)
+                    }
 
                     HStack(spacing: 20) {
                         MiniStat(title: "Pain",  value: "\(log.painLevel)/10",      icon: "bolt.fill",    color: log.painLevel > 5 ? .pmDanger : .pmSuccess)
@@ -322,6 +326,7 @@ struct DashboardView: View {
     private func initGameIfNeeded() {
         guard !gamificationInitialized, let userProfile = profile else { return }
         GamificationService.shared.initializeGamification(context: modelContext, userProfileId: userProfile.id)
+        GamificationService.shared.initializeBadges(context: modelContext)
         gamificationInitialized = true
     }
 

@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct GamificationDashboardWidget: View {
+    var streak: Int = 0
+
     @Query var gamificationProfiles: [GamificationProfile]
     @Query(filter: #Predicate<Quest> { !$0.isWeekly }) var dailyQuests: [Quest]
 
@@ -13,14 +15,21 @@ struct GamificationDashboardWidget: View {
     var body: some View {
         VStack(spacing: 16) {
             if let profile = gamificationProfile {
-                // Level Progress Card
-                LevelProgressCard(
-                    currentLevel:    profile.currentLevel,
-                    levelName:       profile.levelName,
-                    currentXP:       profile.currentLevelXP,
-                    xpToNextLevel:   profile.xpToNextLevel,
-                    progressPercent: profile.xpProgressPercent
-                )
+                // Level + Streak row
+                HStack(alignment: .center, spacing: 12) {
+                    LevelProgressCard(
+                        currentLevel:    profile.currentLevel,
+                        levelName:       profile.levelName,
+                        currentXP:       profile.currentLevelXP,
+                        xpToNextLevel:   profile.xpToNextLevel,
+                        progressPercent: profile.xpProgressPercent
+                    )
+
+                    if streak > 0 {
+                        StreakFlame(streak: streak)
+                            .frame(width: 80)
+                    }
+                }
 
                 // Active Quests Section
                 if !dailyQuests.isEmpty {
