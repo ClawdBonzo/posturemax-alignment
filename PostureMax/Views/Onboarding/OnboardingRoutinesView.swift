@@ -18,15 +18,22 @@ struct OnboardingRoutinesView: View {
                         .scaledToFit()
                         .frame(maxHeight: 120)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.pmPrimary.opacity(0.25), lineWidth: 1)
+                        )
+                        .shadow(color: Color.pmPrimary.opacity(0.3), radius: 10)
+                        .frame(maxWidth: .infinity)
                         .padding(.horizontal, 60)
                         .padding(.top, 8)
 
                     VStack(spacing: 8) {
                         Text("Build Your Routine")
                             .font(.title2.weight(.bold))
+                            .foregroundStyle(.white)
                         Text("Select the routines you'd like in your plan")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.white.opacity(0.5))
                     }
 
                     ForEach(categories, id: \.self) { category in
@@ -35,6 +42,7 @@ struct OnboardingRoutinesView: View {
                             VStack(alignment: .leading, spacing: 10) {
                                 Text(category)
                                     .font(.headline)
+                                    .foregroundStyle(.white.opacity(0.85))
                                     .padding(.horizontal, 24)
 
                                 ForEach(routines, id: \.name) { routine in
@@ -62,14 +70,30 @@ struct OnboardingRoutinesView: View {
             }
 
             VStack(spacing: 8) {
-                PMButton(
-                    title: "Continue (\(selectedIds.count) selected)",
-                    icon: "arrow.right"
-                ) {
+                Button {
                     onContinue()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.right")
+                            .font(.subheadline.weight(.semibold))
+                        Text("Continue (\(selectedIds.count) selected)")
+                            .font(.headline)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        LinearGradient(
+                            colors: [.pmPrimary, .pmGold.opacity(0.8), .pmCyan],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: Color.pmPrimary.opacity(0.5), radius: 14, y: 6)
                 }
                 .disabled(selectedIds.isEmpty)
-                .opacity(selectedIds.isEmpty ? 0.5 : 1)
+                .opacity(selectedIds.isEmpty ? 0.4 : 1)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 40)
@@ -90,33 +114,34 @@ struct RoutineSelectRow: View {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.title3)
-                    .foregroundStyle(isSelected ? Color.pmPrimary : .secondary)
+                    .foregroundStyle(isSelected ? Color.pmPrimary : .white.opacity(0.4))
                     .frame(width: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(name)
                         .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.85))
                     HStack(spacing: 6) {
                         Text("\(duration) min")
                         Text("·")
                         Text(difficulty.capitalized)
                     }
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.4))
                 }
 
                 Spacer()
 
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title3)
-                    .foregroundStyle(isSelected ? Color.pmPrimary : Color(.tertiaryLabel))
+                    .foregroundStyle(isSelected ? Color.pmPrimary : .white.opacity(0.2))
             }
             .padding(14)
-            .background(isSelected ? Color.pmPrimary.opacity(0.08) : Color.pmCardBackground)
+            .background(isSelected ? Color.pmPrimary.opacity(0.12) : Color.white.opacity(0.05))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay {
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.pmPrimary.opacity(0.3) : .clear, lineWidth: 1)
+                    .stroke(isSelected ? Color.pmPrimary.opacity(0.4) : Color.white.opacity(0.08), lineWidth: 1)
             }
         }
         .buttonStyle(.plain)

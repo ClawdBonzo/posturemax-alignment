@@ -40,6 +40,12 @@ struct OnboardingQuizView: View {
                 .scaledToFit()
                 .frame(maxHeight: 120)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.pmPrimary.opacity(0.25), lineWidth: 1)
+                )
+                .shadow(color: Color.pmPrimary.opacity(0.3), radius: 10)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 60)
                 .padding(.top, 8)
 
@@ -93,7 +99,10 @@ struct OnboardingQuizView: View {
                     VStack(spacing: 20) {
                         Text("\(sittingHours) hours")
                             .font(.system(size: 48, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.pmPrimary)
+                            .foregroundStyle(
+                                LinearGradient(colors: [.pmPrimary, .pmGold], startPoint: .leading, endPoint: .trailing)
+                            )
+                            .neonGlow(radius: 8)
 
                         Slider(value: Binding(
                             get: { Double(sittingHours) },
@@ -103,9 +112,9 @@ struct OnboardingQuizView: View {
                         .padding(.horizontal)
 
                         HStack {
-                            Text("1 hr").font(.caption).foregroundStyle(.secondary)
+                            Text("1 hr").font(.caption).foregroundStyle(.white.opacity(0.4))
                             Spacer()
-                            Text("16 hrs").font(.caption).foregroundStyle(.secondary)
+                            Text("16 hrs").font(.caption).foregroundStyle(.white.opacity(0.4))
                         }
                         .padding(.horizontal)
                     }
@@ -128,9 +137,9 @@ struct OnboardingQuizView: View {
                         .padding(.horizontal)
 
                         HStack {
-                            Text("Poor").font(.caption).foregroundStyle(.secondary)
+                            Text("Poor").font(.caption).foregroundStyle(.white.opacity(0.4))
                             Spacer()
-                            Text("Excellent").font(.caption).foregroundStyle(.secondary)
+                            Text("Excellent").font(.caption).foregroundStyle(.white.opacity(0.4))
                         }
                         .padding(.horizontal)
                     }
@@ -164,12 +173,31 @@ struct OnboardingQuizView: View {
             .animation(.easeInOut, value: quizStep)
 
             VStack(spacing: 12) {
-                PMButton(title: quizStep < 4 ? "Next" : "Continue", icon: "arrow.right") {
+                Button {
                     if quizStep < 4 {
                         withAnimation { quizStep += 1 }
                     } else {
                         onContinue()
                     }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.right")
+                            .font(.subheadline.weight(.semibold))
+                        Text(quizStep < 4 ? "Next" : "Continue")
+                            .font(.headline)
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        LinearGradient(
+                            colors: [.pmPrimary, .pmGold.opacity(0.8), .pmCyan],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .shadow(color: Color.pmPrimary.opacity(0.5), radius: 14, y: 6)
                 }
 
                 if quizStep > 0 {
@@ -177,7 +205,7 @@ struct OnboardingQuizView: View {
                         withAnimation { quizStep -= 1 }
                     }
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.4))
                 }
             }
             .padding(.horizontal, 24)
@@ -197,9 +225,10 @@ struct OnboardingQuizView: View {
                 VStack(spacing: 8) {
                     Text(title)
                         .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
                     Text(subtitle)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.5))
                 }
 
                 content()
@@ -227,13 +256,14 @@ struct MultiSelectChip: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(isSelected ? Color.pmPrimary.opacity(0.15) : Color.pmCardBackground)
-            .foregroundStyle(isSelected ? Color.pmPrimary : .primary)
+            .background(isSelected ? Color.pmPrimary.opacity(0.2) : Color.white.opacity(0.06))
+            .foregroundStyle(isSelected ? Color.pmPrimary : .white.opacity(0.7))
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay {
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(isSelected ? Color.pmPrimary : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? Color.pmPrimary.opacity(0.7) : Color.white.opacity(0.1), lineWidth: isSelected ? 2 : 1)
             }
+            .shadow(color: isSelected ? Color.pmPrimary.opacity(0.25) : .clear, radius: 8)
         }
         .buttonStyle(.plain)
     }
@@ -249,13 +279,18 @@ struct SingleSelectRow: View {
             HStack {
                 Text(title)
                     .font(.body.weight(.medium))
+                    .foregroundStyle(.white.opacity(0.85))
                 Spacer()
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isSelected ? Color.pmPrimary : .secondary)
+                    .foregroundStyle(isSelected ? Color.pmPrimary : .white.opacity(0.3))
             }
             .padding()
-            .background(isSelected ? Color.pmPrimary.opacity(0.1) : Color.pmCardBackground)
+            .background(isSelected ? Color.pmPrimary.opacity(0.15) : Color.white.opacity(0.06))
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.pmPrimary.opacity(0.5) : Color.white.opacity(0.08), lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }

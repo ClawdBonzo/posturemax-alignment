@@ -30,12 +30,19 @@ struct OnboardingLoadingView: View {
                     .scaledToFit()
                     .frame(maxHeight: 160)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.pmPrimary.opacity(0.25), lineWidth: 1)
+                    )
+                    .shadow(color: Color.pmPrimary.opacity(0.3), radius: 12)
+                    .frame(maxWidth: .infinity)
                     .padding(.horizontal, 40)
 
                 if showCheckmark {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 60))
                         .foregroundStyle(Color.pmSuccess)
+                        .shadow(color: Color.pmSuccess.opacity(0.5), radius: 12)
                         .transition(.scale.combined(with: .opacity))
                 } else {
                     ProgressView()
@@ -46,12 +53,16 @@ struct OnboardingLoadingView: View {
                 VStack(spacing: 8) {
                     Text(showCheckmark ? "Your Plan is Ready!" : "Building your 30-day\nAlignment Plan")
                         .font(.title2.weight(.bold))
+                        .foregroundStyle(.white)
                         .multilineTextAlignment(.center)
 
                     if !showCheckmark {
                         Text("for \(name)")
                             .font(.title3)
-                            .foregroundStyle(Color.pmPrimary)
+                            .foregroundStyle(
+                                LinearGradient(colors: [.pmPrimary, .pmGold], startPoint: .leading, endPoint: .trailing)
+                            )
+                            .neonGlow(radius: 6)
                     }
                 }
 
@@ -103,18 +114,18 @@ struct LoadingProgressRow: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.caption)
-                    .foregroundStyle(progress >= 1 ? Color.pmSuccess : .secondary)
+                    .foregroundStyle(progress >= 1 ? Color.pmPrimary : .white.opacity(0.3))
 
                 Text(title)
                     .font(.subheadline)
-                    .foregroundStyle(progress >= 1 ? .primary : .secondary)
+                    .foregroundStyle(progress >= 1 ? .white : .white.opacity(0.4))
 
                 Spacer()
 
                 if progress >= 1 {
                     Image(systemName: "checkmark")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(Color.pmSuccess)
+                        .foregroundStyle(Color.pmPrimary)
                         .transition(.scale)
                 }
             }
@@ -122,11 +133,18 @@ struct LoadingProgressRow: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color.pmPrimary.opacity(0.15))
+                        .fill(Color.white.opacity(0.08))
 
                     Capsule()
-                        .fill(Color.pmPrimary)
+                        .fill(
+                            LinearGradient(
+                                colors: [.pmPrimary, .pmCyan],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
                         .frame(width: geo.size.width * progress)
+                        .shadow(color: Color.pmPrimary.opacity(0.4), radius: 4)
                 }
             }
             .frame(height: 6)

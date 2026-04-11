@@ -60,6 +60,7 @@ struct OnboardingNameView: View {
                                 )
                                 .shadow(color: Color.pmPrimary.opacity(0.4), radius: 16)
                         }
+                        .frame(maxWidth: .infinity)
                         .padding(.horizontal, 40)
                         .padding(.top, 20)
 

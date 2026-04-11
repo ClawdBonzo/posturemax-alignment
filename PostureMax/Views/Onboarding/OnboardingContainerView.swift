@@ -22,7 +22,17 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         ZStack {
-            Color.pmBackground.ignoresSafeArea()
+            // Shared dark background for all onboarding steps
+            LinearGradient(
+                colors: [
+                    Color(red: 0.04, green: 0.06, blue: 0.14),
+                    Color(red: 0.02, green: 0.04, blue: 0.10),
+                    Color(red: 0.04, green: 0.08, blue: 0.16)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
             switch currentStep {
             case 0:
