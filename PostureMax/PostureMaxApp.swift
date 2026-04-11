@@ -68,23 +68,36 @@ struct AnimatedSplashScreen: View {
 
     var body: some View {
         ZStack {
-            // Full-bleed splash background image
-            Image(colorScheme == .dark ? "Splash-Dark" : "Splash-Light")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
+            // Dark background — consistent with onboarding
+            LinearGradient(
+                colors: [
+                    Color(red: 0.04, green: 0.06, blue: 0.14),
+                    Color(red: 0.02, green: 0.04, blue: 0.10),
+                    Color(red: 0.04, green: 0.08, blue: 0.16)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-            // Overlay content
+            // Ambient glow
+            Circle()
+                .fill(Color.pmPrimary.opacity(0.18))
+                .frame(width: 280, height: 280)
+                .blur(radius: 60)
+                .offset(y: -40)
+                .opacity(glowOpacity)
+
+            // Content
             VStack(spacing: 20) {
                 Spacer()
 
                 // Brand icon with glow
                 ZStack {
-                    // Teal glow behind icon
                     Circle()
-                        .fill(Color.pmPrimary.opacity(0.25))
-                        .frame(width: 160, height: 160)
-                        .blur(radius: 30)
+                        .fill(Color.pmPrimary.opacity(0.3))
+                        .frame(width: 180, height: 180)
+                        .blur(radius: 35)
                         .opacity(glowOpacity)
 
                     Image("BrandIcon")
@@ -92,7 +105,11 @@ struct AnimatedSplashScreen: View {
                         .scaledToFit()
                         .frame(width: 120, height: 120)
                         .clipShape(RoundedRectangle(cornerRadius: 28))
-                        .shadow(color: Color.pmPrimary.opacity(0.4), radius: 20)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 28)
+                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                        )
+                        .shadow(color: Color.pmPrimary.opacity(0.6), radius: 24)
                         .scaleEffect(logoScale)
                         .opacity(logoOpacity)
                 }
@@ -100,11 +117,18 @@ struct AnimatedSplashScreen: View {
                 VStack(spacing: 6) {
                     Text("PostureMax")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.pmGradient)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.pmPrimary, .pmGold, .pmCyan],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .neonGlow(radius: 10)
 
                     Text("Stand Taller Every Day")
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.55))
                 }
                 .opacity(textOpacity)
 

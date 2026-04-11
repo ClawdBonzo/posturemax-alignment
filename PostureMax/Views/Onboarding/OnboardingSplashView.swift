@@ -17,21 +17,36 @@ struct OnboardingSplashView: View {
 
     var body: some View {
         ZStack {
-            // Animated background gradient
+            // Rich dark background matching paywall aesthetic
             LinearGradient(
                 colors: [
-                    Color.pmPrimary.opacity(0.03),
-                    Color.clear,
-                    Color.pmSecondary.opacity(0.03)
+                    Color(red: 0.04, green: 0.06, blue: 0.14),
+                    Color(red: 0.02, green: 0.04, blue: 0.10),
+                    Color(red: 0.04, green: 0.08, blue: 0.16)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
 
+            // Ambient glow orbs
+            Circle()
+                .fill(Color.pmPrimary.opacity(0.15))
+                .frame(width: 300, height: 300)
+                .blur(radius: 60)
+                .offset(x: -60, y: -160)
+                .scaleEffect(pulseRings ? 1.1 : 0.9)
+
+            Circle()
+                .fill(Color.pmGold.opacity(0.08))
+                .frame(width: 220, height: 220)
+                .blur(radius: 50)
+                .offset(x: 100, y: 220)
+                .scaleEffect(pulseRings ? 0.9 : 1.1)
+
             // Floating particles
             FloatingParticlesView()
-                .opacity(showIcon ? 0.6 : 0)
+                .opacity(showIcon ? 0.8 : 0)
                 .animation(.easeIn(duration: 2), value: showIcon)
 
             VStack(spacing: 0) {
@@ -43,13 +58,13 @@ struct OnboardingSplashView: View {
                     ZStack {
                         // Outer pulse ring 3
                         Circle()
-                            .stroke(Color.pmPrimary.opacity(0.06), lineWidth: 1)
+                            .stroke(Color.pmPrimary.opacity(0.15), lineWidth: 1)
                             .frame(width: 260, height: 260)
                             .scaleEffect(pulseRings ? 1.1 : 0.9)
 
                         // Outer pulse ring 2
                         Circle()
-                            .stroke(Color.pmPrimary.opacity(0.1), lineWidth: 1.5)
+                            .stroke(Color.pmPrimary.opacity(0.25), lineWidth: 1.5)
                             .frame(width: 200, height: 200)
                             .scaleEffect(pulseRings ? 1.05 : 0.95)
 
@@ -58,10 +73,10 @@ struct OnboardingSplashView: View {
                             .fill(
                                 AngularGradient(
                                     gradient: Gradient(colors: [
-                                        Color.pmPrimary.opacity(0.3),
-                                        Color.pmSecondary.opacity(0.1),
+                                        Color.pmPrimary.opacity(0.5),
+                                        Color.pmGold.opacity(0.2),
                                         Color.pmPrimary.opacity(0.0),
-                                        Color.pmPrimary.opacity(0.3)
+                                        Color.pmPrimary.opacity(0.5)
                                     ]),
                                     center: .center
                                 )
@@ -72,8 +87,9 @@ struct OnboardingSplashView: View {
 
                         // Inner glow
                         Circle()
-                            .fill(Color.pmPrimary.opacity(0.12))
+                            .fill(Color.pmPrimary.opacity(0.18))
                             .frame(width: 150, height: 150)
+                            .blur(radius: 4)
 
                         // Brand icon
                         Image("BrandIcon")
@@ -81,7 +97,11 @@ struct OnboardingSplashView: View {
                             .scaledToFit()
                             .frame(width: 100, height: 100)
                             .clipShape(RoundedRectangle(cornerRadius: 24))
-                            .shadow(color: Color.pmPrimary.opacity(0.5), radius: 20)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 24)
+                                    .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                            )
+                            .shadow(color: Color.pmPrimary.opacity(0.6), radius: 24)
                     }
                     .scaleEffect(showIcon ? 1.0 : 0.3)
                     .opacity(showIcon ? 1 : 0)
@@ -90,10 +110,17 @@ struct OnboardingSplashView: View {
                     VStack(spacing: 10) {
                         Text("PostureMax")
                             .font(.system(size: 42, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.pmGradient)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.pmPrimary, .pmGold, .pmCyan],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .neonGlow(radius: 14)
                             .overlay(
                                 LinearGradient(
-                                    colors: [.clear, .white.opacity(0.4), .clear],
+                                    colors: [.clear, .white.opacity(0.5), .clear],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -108,7 +135,7 @@ struct OnboardingSplashView: View {
 
                         Text("Start Your Pain-Free Life")
                             .font(.title3.weight(.medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.white.opacity(0.6))
                             .opacity(showSubtitle ? 1 : 0)
                             .offset(y: showSubtitle ? 0 : 10)
                     }
@@ -127,17 +154,36 @@ struct OnboardingSplashView: View {
 
                 // CTA section
                 VStack(spacing: 14) {
-                    PMButton(title: "Begin Your Journey", icon: "arrow.right") {
+                    Button {
                         onContinue()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.right")
+                                .font(.subheadline.weight(.semibold))
+                            Text("Begin Your Journey")
+                                .font(.headline)
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [.pmPrimary, .pmGold.opacity(0.8), .pmCyan],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: Color.pmPrimary.opacity(0.5), radius: 14, y: 6)
                     }
 
                     HStack(spacing: 4) {
                         Image(systemName: "lock.shield.fill")
                             .font(.caption2)
-                            .foregroundStyle(Color.pmPrimary.opacity(0.5))
+                            .foregroundStyle(Color.pmPrimary.opacity(0.6))
                         Text("Your data stays 100% on your device")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(.white.opacity(0.35))
                     }
                 }
                 .padding(.horizontal, 24)
@@ -217,8 +263,9 @@ struct FeaturePill: View {
         .foregroundStyle(Color.pmPrimary)
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color.pmPrimary.opacity(0.08))
+        .background(Color.pmPrimary.opacity(0.15))
         .clipShape(Capsule())
+        .overlay(Capsule().stroke(Color.pmPrimary.opacity(0.3), lineWidth: 1))
     }
 }
 
@@ -254,7 +301,8 @@ struct ParticleView: View {
         Circle()
             .fill(Color.pmPrimary)
             .frame(width: particle.size, height: particle.size)
-            .opacity(isAnimating ? particle.opacity : 0)
+            .shadow(color: Color.pmPrimary.opacity(0.6), radius: particle.size)
+            .opacity(isAnimating ? particle.opacity + 0.2 : 0)
             .position(
                 x: geoSize.width * particle.x,
                 y: isAnimating
