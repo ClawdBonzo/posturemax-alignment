@@ -79,9 +79,21 @@ struct SettingsView: View {
                 // Export
                 Section("Reports") {
                     Button {
-                        generatePDF()
+                        if purchaseManager.isPro {
+                            generatePDF()
+                        } else {
+                            showPaywall = true
+                        }
                     } label: {
-                        Label("Export PDF Report", systemImage: "doc.richtext")
+                        HStack {
+                            Label("Export PDF Report", systemImage: "doc.richtext")
+                            Spacer()
+                            if !purchaseManager.isPro {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(Color.pmGold)
+                            }
+                        }
                     }
                 }
 

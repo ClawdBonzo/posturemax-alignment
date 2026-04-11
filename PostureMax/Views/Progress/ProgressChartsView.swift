@@ -6,6 +6,9 @@ struct ProgressChartsView: View {
     @Query(sort: \DailyLog.date) private var logs: [DailyLog]
     @State private var selectedRange: TimeRange = .week
     @State private var selectedTrait: PostureTrait = .overall
+    @State private var showUpgradeSheet = false
+
+    private var isPro: Bool { PurchaseManager.shared.isPro }
 
     enum TimeRange: String, CaseIterable {
         case week    = "7D"
@@ -56,6 +59,12 @@ struct ProgressChartsView: View {
                         .pickerStyle(.segmented)
                         .padding(.horizontal)
                         .accessibilityLabel("Chart time range")
+                        .onChange(of: selectedRange) { _, newRange in
+                            if !isPro && newRange != .week {
+                                selectedRange = .week
+                                showUpgradeSheet = true
+                            }
+                        }
 
                         mainChart
                         traitSelector
@@ -66,6 +75,13 @@ struct ProgressChartsView: View {
                 }
             }
             .navigationTitle("Progress")
+            .sheet(isPresented: $showUpgradeSheet) {
+                ContextualPaywallSheet(
+                    feature: "Full Progress History",
+                    icon: "chart.line.uptrend.xyaxis",
+                    description: "See your 30-day, 90-day, and all-time posture trends to track your real transformation."
+                )
+            }
         }
     }
 

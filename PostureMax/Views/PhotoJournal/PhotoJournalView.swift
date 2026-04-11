@@ -10,6 +10,8 @@ struct PhotoJournalView: View {
     @State private var comparePhoto1: PosturePhoto?
     @State private var comparePhoto2: PosturePhoto?
 
+    private var isPro: Bool { PurchaseManager.shared.isPro }
+
     private var filteredPhotos: [PosturePhoto] {
         guard !photos.isEmpty else { return [] }
         let count = photos.count
@@ -52,6 +54,7 @@ struct PhotoJournalView: View {
             .sheet(item: $selectedPhoto) { photo in
                 PhotoDetailView(photo: photo)
             }
+            .proGated(feature: "Photo Tracking", icon: "camera.fill", isPro: isPro)
         }
     }
 

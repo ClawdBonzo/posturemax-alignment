@@ -12,6 +12,10 @@ struct DashboardView: View {
     @State private var showMirrorMode       = false
     @State private var showShareSheet       = false
     @State private var gamificationInitialized = false
+    @State private var showMirrorPaywall   = false
+    @State private var showSharePaywall    = false
+
+    private var isPro: Bool { PurchaseManager.shared.isPro }
 
     // Celebration state
     @State private var showCelebration      = false
@@ -77,7 +81,8 @@ struct DashboardView: View {
                     HStack(spacing: 12) {
                         // Mirror Mode button
                         Button {
-                            showMirrorMode = true
+                            if isPro { showMirrorMode = true }
+                            else { showMirrorPaywall = true }
                         } label: {
                             Image(systemName: "camera.viewfinder")
                                 .font(.system(size: 17, weight: .semibold))
@@ -88,7 +93,8 @@ struct DashboardView: View {
                         // Share glow-up
                         if todayLog != nil {
                             Button {
-                                showShareSheet = true
+                                if isPro { showShareSheet = true }
+                                else { showSharePaywall = true }
                             } label: {
                                 Image(systemName: "square.and.arrow.up")
                                     .font(.system(size: 17, weight: .semibold))
@@ -112,6 +118,20 @@ struct DashboardView: View {
                     level:     gamProfile?.currentLevel ?? 1,
                     levelName: gamProfile?.levelName ?? "Slouch",
                     userName:  profile?.displayName ?? ""
+                )
+            }
+            .sheet(isPresented: $showMirrorPaywall) {
+                ContextualPaywallSheet(
+                    feature: "Mirror Mode",
+                    icon: "camera.viewfinder",
+                    description: "Check your posture in real-time with a live camera alignment grid."
+                )
+            }
+            .sheet(isPresented: $showSharePaywall) {
+                ContextualPaywallSheet(
+                    feature: "Share Cards",
+                    icon: "square.and.arrow.up",
+                    description: "Show off your posture transformation with a stunning share card."
                 )
             }
             .onAppear {

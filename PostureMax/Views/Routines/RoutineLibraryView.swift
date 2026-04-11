@@ -6,6 +6,10 @@ struct RoutineLibraryView: View {
     @State private var selectedCategory: String? = nil
     @State private var selectedRoutine: RoutineItem?
     @State private var searchText = ""
+    @State private var showUpgradeSheet = false
+
+    private var isPro: Bool { PurchaseManager.shared.isPro }
+    private let freeRoutineLimit = 2
 
     private var categories: [String] {
         Array(Set(routines.map(\.category))).sorted()
@@ -47,11 +51,31 @@ struct RoutineLibraryView: View {
                 // Routines list
                 ScrollView {
                     LazyVStack(spacing: 12) {
-                        ForEach(filteredRoutines) { routine in
+                        ForEach(Array(filteredRoutines.enumerated()), id: \.element.id) { index, routine in
+                            let isLocked = !isPro && index >= freeRoutineLimit
                             Button {
-                                selectedRoutine = routine
+                                if isLocked {
+                                    showUpgradeSheet = true
+                                } else {
+                                    selectedRoutine = routine
+                                }
                             } label: {
                                 RoutineCard(routine: routine)
+                                    .overlay {
+                                        if isLocked {
+                                            ZStack {
+                                                RoundedRectangle(cornerRadius: 14)
+                                                    .fill(.ultraThinMaterial.opacity(0.8))
+                                                HStack(spacing: 6) {
+                                                    Image(systemName: "lock.fill")
+                                                        .font(.caption)
+                                                    Text("Pro")
+                                                        .font(.caption.weight(.bold))
+                                                }
+                                                .foregroundStyle(Color.pmGold)
+                                            }
+                                        }
+                                    }
                             }
                             .buttonStyle(.plain)
                         }
@@ -65,6 +89,13 @@ struct RoutineLibraryView: View {
             .searchable(text: $searchText, prompt: "Search routines")
             .sheet(item: $selectedRoutine) { routine in
                 RoutineDetailView(routine: routine)
+            }
+            .sheet(isPresented: $showUpgradeSheet) {
+                ContextualPaywallSheet(
+                    feature: "All Routines",
+                    icon: "dumbbell.fill",
+                    description: "Unlock the full library of \(routines.count)+ exercises, stretches, and mobility routines."
+                )
             }
         }
     }
